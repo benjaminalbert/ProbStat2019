@@ -22,10 +22,8 @@ public class DriverJess {
             filter.getDescriptionBlacklist().add("911/NO  VOICE");
             PoliceCall[] policeCalls = PoliceCall.readPoliceCalls(Config.DEFAULT_SAVE_DIR + File.separator + DataDownloader.CRIME_DATA_FILE_NAME, filter);
 
-            System.out.println("Binning...");
-            DataFormatting.binning(policeCalls);
             System.out.println("Formatting...");
-            DataFormatting.Formatting("D:\\JHU\\Prob Stat\\ProbStat2019-master\\FormattedCSV.csv");
+            DataFormatting.Formatting(policeCalls, "D:\\JHU\\Prob Stat\\ProbStat2019-master\\FormattedCSV.csv");
 
         } catch(Exception e){
             e.printStackTrace();

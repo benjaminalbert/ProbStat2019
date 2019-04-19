@@ -10,44 +10,34 @@ import java.util.ArrayList;
 public class DailyData {
 
     private LocalDateTime dateTime;
-    private int totalSev0;
-    private int totalSev1;
-    private int totalSev2;
-    private int totalSev3;
-    private ArrayList<PoliceCall> arr;
+    private int[][][] sums; // 3D array of sums of severity occurrences [row][column][severity]
 
-    public DailyData(ArrayList<PoliceCall> ra) {
-        totalSev0 = 0;
-        totalSev1 = 0;
-        totalSev2 = 0;
-        totalSev3 = 0;
-        this.arr = ra;
-        this.dateTime = ra.get(0).getDatetime();
-    }
-
-    public void countSevs() {
-        for (PoliceCall call : this.arr) {
-            int sev = call.getSeverity();
-            if (sev == 0) {
-                this.totalSev0 =+ 1;
-            } else if (sev == 1) {
-                this.totalSev1 =+ 1;
-            } else if (sev == 2) {
-                this.totalSev2 =+ 1;
-            } else {
-                this.totalSev3 =+ 1;
-            }
-        }
+    public DailyData(Grid grid) {
+        this.sums = grid.calcSeverities();
+        this.dateTime = grid.getDateTime();
+        // add weather data
     }
 
     public String toCSV() {
         CSVBuilder csvBuilder = new CSVBuilder();
+        int col = sums[0][0].length;
+        int rows = sums[0].length;
+
         csvBuilder
             .append(this.dateTime.toString())
-            .append(this.totalSev0)
-            .append(this.totalSev1)
-            .append(this.totalSev2)
-            .append(this.totalSev3);
+            .append(rows)
+            .append(col);
+            //append weather data
+
+        // Append Severities --> Order is row column and level of severity
+        // Ex. (Row, Col, Sev) -> (1, 1, 0) (1, 1, 1) (1, 1, 2) (1, 1, 3) (1, 2, 0), etc.
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < col; j++) {
+                for (int k = 0; k < 4; k++) {
+                    csvBuilder.append(this.sums[i][j][k]);
+                }
+            }
+        }
 
         return csvBuilder.toCSV();
     }

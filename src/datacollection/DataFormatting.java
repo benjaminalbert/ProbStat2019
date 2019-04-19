@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 
 /**
@@ -16,26 +17,30 @@ import java.util.Collections;
 public class DataFormatting {
 
     private static Grid grid;
+    private static double minLat;
+    private static double maxLat;
+    private static double minLong;
+    private static double maxLong;
 
-    public static void binning(PoliceCall[] policeCalls) {
+    // Binning Per Day -- New Grid is Created for each day
+    private static void binning(ArrayList<PoliceCall> policeCalls) {
         grid = new Grid();
-        MaxMin(policeCalls);
+        grid.setDateTime(policeCalls.get(0).getDatetime());
+        grid.setMaxLat(maxLat);
+        grid.setMinLat(minLat);
+        grid.setMinLong(minLong);
+        grid.setMaxLong(maxLong);
         for (PoliceCall call : policeCalls) {
             grid.insertCall(call);
         }
-        int bins = grid.getBins();
-        for (int i = 0; i < bins; i++) {
-            for (int j = 0; j < bins; j++) {
-                sortEachBox(grid.getCallsPerBox(i, j));
-            }
-        }
     }
 
+    // Calculate Max/Min Longitude/Latitude for grid bounds
     private static void MaxMin(PoliceCall[] policeCalls) {
-        double minLat = 100.;
-        double maxLat = 0.;
-        double minLong = 200.;
-        double maxLong = 0.;
+        minLat = 100.;
+        maxLat = 0.;
+        minLong = 200.;
+        maxLong = 0.;
         for (PoliceCall policeCall : policeCalls) {
             if (minLat > policeCall.getLatitude()) {
                 minLat = policeCall.getLatitude();
@@ -50,25 +55,31 @@ public class DataFormatting {
                 maxLong = policeCall.getLongitude();
             }
         }
-        grid.setMaxLat(maxLat);
-        grid.setMinLat(minLat);
-        grid.setMinLong(minLong);
-        grid.setMaxLong(maxLong);
-    }
 
-    private static void sortEachBox(ArrayList<PoliceCall> calls) {
-        if (calls != null) {
-            Collections.sort(calls, new DateComparator());
-        }
     }
 
     // add weather input
-    public static void Formatting(String saveFilePath) throws IOException {
+    public static void Formatting(PoliceCall[] policeCalls, String saveFilePath) throws IOException {
+        MaxMin(policeCalls); // Set grid bounds based on all of the police calls
         File file = new File(saveFilePath);
         BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(file, true));
         String content;
-        int bins = grid.getBins();
-        for (int i = 0; i < bins; i++) {
+        Arrays.sort(policeCalls, new DateComparator()); // Sort the array of all policecalls using the Date/Time
+        int k = 0;
+        ArrayList<PoliceCall> dailyCalls;
+        while (k < policeCalls.length) {
+            do {
+                dailyCalls = new ArrayList<>(); // Create list of all police calls of a day
+                dailyCalls.add(policeCalls[k]);
+                k++;
+            } while (k < policeCalls.length && policeCalls[k-1].getDatetime().compareTo(policeCalls[k].getDatetime()) == 0);
+            binning(dailyCalls); // after creating daily list of calls, bin them according to pre-set grid
+            DailyData day = new DailyData(grid);
+            content = day.toCSV(); // each DailyData object has the information for each row of the CSV
+            bufferedWriter.write(content); // write the data into the CSV file
+        }
+
+ /*       for (int i = 0; i < bins; i++) {
             for (int j = 0; j < bins; j++) {
                 ArrayList<PoliceCall> calls = grid.getCallsPerBox(i, j);
                 if (calls != null) {
@@ -88,7 +99,7 @@ public class DataFormatting {
                     }
                 }
             }
-        }
+        }*/
 
         /*
         if (saveFilePath.endsWith("json")) {
