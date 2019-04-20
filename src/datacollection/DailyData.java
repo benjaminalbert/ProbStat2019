@@ -1,7 +1,6 @@
 package datacollection;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 
 /** Object holding daily data.
  * @author Jessica Su

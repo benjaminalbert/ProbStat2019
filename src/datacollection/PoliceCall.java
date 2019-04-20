@@ -11,13 +11,20 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 
 /**
  * @author Benjamin Albert
  */
 public class PoliceCall {
 
-    private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("MM/dd/yyyy hh:mm:ss a");
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("MM/dd/yyyy hh:mm:ss a");
+    
+    public static final Comparator<PoliceCall> DATE_TIME_COMPARATOR = (PoliceCall p1, PoliceCall p2) -> p1.datetime.compareTo(p2.datetime);
+    public static final Comparator<PoliceCall> SEVERITY_COMPARATOR = (PoliceCall p1, PoliceCall p2) -> Integer.compare(p1.severity, p2.severity);
+    public static final Comparator<PoliceCall> LATITUDE_COMPARATOR = (PoliceCall p1, PoliceCall p2) -> Double.compare(p1.latitude, p2.latitude);
+    public static final Comparator<PoliceCall> LONGITUDE_COMPARATOR = (PoliceCall p1, PoliceCall p2) -> Double.compare(p1.longitude, p2.longitude);
 
     private String recordId;
     private LocalDateTime datetime;
@@ -58,7 +65,7 @@ public class PoliceCall {
         public ArrayList<Integer> getSeverities() {
             return severities;
         }
-
+        
         public void setSeverities(ArrayList<Integer> severities) {
             this.severities = severities;
         }
@@ -139,13 +146,19 @@ public class PoliceCall {
                 if (line.length() > 30) {
                     String[] tokens = line.split(",");
                     policeCall.setRecordId(tokens[0]);
-                    policeCall.setDatetime(LocalDateTime.parse(tokens[1], dateTimeFormatter));
-                    policeCall.setSeverity(PoliceCall.severity(tokens[2]));
-                    policeCall.setDistrict(tokens[3]);
-                    policeCall.setDescription(tokens[4]);
-                    policeCall.setNumber(tokens[5].substring(1));
-                    policeCall.setIncidentLocation(tokens[6]);
-                    policeCall.setCallLocation(tokens[7].substring(1));
+//                    policeCall.setNumber(tokens[1].substring(1));
+                    policeCall.setDatetime(LocalDateTime.parse(tokens[2], DATE_TIME_FORMATTER));
+                    policeCall.setSeverity(PoliceCall.severity(tokens[3]));
+//                    policeCall.setDistrict(tokens[4]);
+                    policeCall.setDescription(tokens[5]);
+//                    policeCall.setIncidentLocation(tokens[6]);
+//                    StringBuilder callLocation = new StringBuilder();
+//                    callLocation.append(tokens[7]);
+//                    for (int x = 8; x < tokens.length; x++){
+//                        callLocation.append(" ");
+//                        callLocation.append(tokens[x]);
+//                    }
+//                    policeCall.setCallLocation(callLocation.toString());
                 } else if (line.contains("BALTIMORE")) {
                     policeCall.setCallLocation(policeCall.getCallLocation() + " " + (line.endsWith("\"") ? line.substring(0, line.length() - 1) : line));
                 } else {
@@ -160,6 +173,7 @@ public class PoliceCall {
                 policeCall = new PoliceCall();
             }
         }
+        Collections.sort(policeCalls, DATE_TIME_COMPARATOR);
 
         return policeCalls.toArray(new PoliceCall[0]);
     }

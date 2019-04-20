@@ -64,7 +64,7 @@ public class DataFormatting {
         File file = new File(saveFilePath);
         BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(file, true));
         String content;
-        Arrays.sort(policeCalls, new DateComparator()); // Sort the array of all policecalls using the Date/Time
+        Arrays.sort(policeCalls, PoliceCall.DATE_TIME_COMPARATOR); // Sort the array of all policecalls using the Date/Time
         int k = 0;
         ArrayList<PoliceCall> dailyCalls;
         while (k < policeCalls.length) {
