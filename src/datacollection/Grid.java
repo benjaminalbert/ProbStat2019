@@ -8,7 +8,7 @@ import java.util.Comparator;
  * @author Jessica Su
  */
 public class Grid {
-    private double minLat;;
+    private double minLat;
     private double maxLat;
     private double minLong;
     private double maxLong;
@@ -27,7 +27,7 @@ public class Grid {
         minLong = 200.;
         maxLong = 0.;
         ra = new ArrayList[this.bins][this.bins];
-        sums = new int[this.bins][this.bins][1];
+        sums = new int[this.bins][this.bins][4];
     }
 
     /** Set Maximum Latitude. */
@@ -42,7 +42,7 @@ public class Grid {
 
     /** Set Maximum Longitude. */
     public void setMaxLong(double lon) {
-        this.maxLat = lon;
+        this.maxLong = lon;
     }
 
     /** Set Minimum Longitude. */
@@ -92,8 +92,8 @@ public class Grid {
         if (this.ra == null) {
             throw new IllegalArgumentException("Bins haven't been set");
         }
-        int rows = rowsCalc(call.getLatitude()) - 1; // index starts at 0
-        int col = colCalc(call.getLongitude()) - 1; // index starts at 0
+        int rows = rowsCalc(call.getLatitude());
+        int col = colCalc(call.getLongitude());
         if (this.ra[rows][col] == null) {
             this.ra[rows][col] = new ArrayList<>();
         }
@@ -105,9 +105,15 @@ public class Grid {
      * @return the row of the grid
      */
     private int rowsCalc(double lat) {
-        double latInc = (this.maxLat - this.minLat) / this.bins;
-        int x = (int) Math.round(lat / latInc);
-        return this.bins - x; // latitude increases bottom up so rows must be reversed
+        if (lat == this.maxLat) {
+            return 0;
+        } else if (lat == this.minLat) {
+            return this.bins - 1;
+        } else {
+            double latInc = (this.maxLat - this.minLat) / this.bins;
+            int x = (int) Math.floor((lat - this.minLat) / latInc);
+            return this.bins - x - 1; // latitude increases bottom up so rows must be reversed
+        }
     }
 
     /** Calculate the column that the call at lon belongs to.
@@ -115,8 +121,15 @@ public class Grid {
      * @return the column of the grid
      */
     private int colCalc(double lon) {
-        double longInc = (this.maxLong - this.minLong) / this.bins;
-        return (int) Math.round(lon / longInc);
+        if (lon == this.minLong) {
+            return 0;
+        } else if (lon == this.maxLong) {
+            return this.bins - 1;
+        } else {
+            double longInc = (this.maxLong - this.minLong) / this.bins;
+            int x = (int) Math.floor((lon - this.minLong) / longInc);
+            return x;
+        }
     }
 
     /** Return the list of police calls at a certain box.
@@ -134,9 +147,11 @@ public class Grid {
     public int[][][] calcSeverities() {
         for (int i = 0; i < this.bins; i++) {
             for (int j = 0; j < this.bins; j++) {
-                for (PoliceCall call : this.ra[i][j]) {
-                    int sev = call.getSeverity();
-                    this.sums[i][j][sev] =+ 1;
+                if (this.ra[i][j] != null) {
+                    for (PoliceCall call : this.ra[i][j]) {
+                        int sev = call.getSeverity();
+                        this.sums[i][j][sev] += 1;
+                    }
                 }
             }
         }

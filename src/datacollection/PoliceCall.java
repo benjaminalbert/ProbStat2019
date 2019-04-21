@@ -162,8 +162,8 @@ public class PoliceCall {
                 } else if (line.contains("BALTIMORE")) {
                     policeCall.setCallLocation(policeCall.getCallLocation() + " " + (line.endsWith("\"") ? line.substring(0, line.length() - 1) : line));
                 } else {
-                    policeCall.setLongitude(Double.valueOf(line.substring(1, line.indexOf(","))));
-                    policeCall.setLatitude(Double.valueOf(line.substring(line.indexOf(" ") + 1, line.indexOf(")"))));
+                    policeCall.setLatitude(Double.valueOf(line.substring(1, line.indexOf(","))));
+                    policeCall.setLongitude(Double.valueOf(line.substring(line.indexOf(" ") + 1, line.indexOf(")"))));
                 }
                 if (line.endsWith("\"") && (filter == null || filter.pass(policeCall))) {
                     policeCalls.add(policeCall);

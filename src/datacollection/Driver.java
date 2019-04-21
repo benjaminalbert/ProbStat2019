@@ -27,14 +27,17 @@ public class Driver {
                 saveDir.mkdirs();
             }
             
-//            downloadCrimeData();
-            downloadWeatherData();
+            //downloadCrimeData();
+            //downloadWeatherData();
             
-//            Filter filter = null;
-//            filter = makeHighSeverityFilter();
-//            PoliceCall[] policeCalls = readPoliceCalls(filter);
+            Filter filter = null;
+            filter = makeHighSeverityFilter();
+            PoliceCall[] policeCalls = readPoliceCalls(filter);
 
-            readStationReports();
+            StationReport[] weather = readStationReports();
+
+            System.out.println("formatting data...");
+            DataFormatting.Formatting(weather, policeCalls, DATA_SAVE_DIR);
 
 //            PoliceCall.write(policeCalls, DATA_SAVE_DIR + FILTERED_CRIME_FILE_NAME);
             

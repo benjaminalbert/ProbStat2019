@@ -127,7 +127,9 @@ public class WeatherReport {
         public void setHourlyPrecipitationInches(Double hourlyPrecipitationInches) {
             this.hourlyPrecipitationInches = hourlyPrecipitationInches;
         }
-        
-        
+
+        public LocalDateTime getDatetime() {
+            return datetime;
+        }
     }
 }
