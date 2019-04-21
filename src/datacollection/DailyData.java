@@ -9,7 +9,8 @@ import java.time.LocalDateTime;
 public class DailyData {
 
     private LocalDateTime dateTime;
-    private int[][][] sums; // 3D array of sums of severity occurrences [row][column][severity]
+    // 3D array of sums of severity occurrences [row][column][severity]
+    private int[][][] sums;
     private Double perceivedFahrenheit;
     private Double hourlyPrecipitationInches;
     private Double relativeHumidity;
@@ -20,9 +21,12 @@ public class DailyData {
         this.perceivedFahrenheit = report.getPerceivedFahrenheit();
         this.hourlyPrecipitationInches = report.getHourlyPrecipitationInches();
         this.relativeHumidity = report.getRelativeHumidity();
-        // add weather data
     }
 
+    /** Calculate total number of calls per day.
+     *  Used primarily for debugging purposes
+     * @return calls per day
+     */
     public int callsPerDay() {
         int rows = sums.length;
         int col = sums[0].length;
@@ -37,6 +41,9 @@ public class DailyData {
         return sum;
     }
 
+    /** Create a string representation of DailyData.
+     * @return the string
+     */
     public String toCSV() {
         CSVBuilder csvBuilder = new CSVBuilder();
         int col = sums[0].length;
@@ -48,6 +55,7 @@ public class DailyData {
             .append(col)
             .append(calls);
 
+        // Used for temporary solution to unavailable data at a single station
         if (this.perceivedFahrenheit == null) {
             csvBuilder.append("null");
         } else {

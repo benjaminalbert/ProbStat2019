@@ -2,7 +2,6 @@ package datacollection;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Comparator;
 
 /** Grid Object class.
  * @author Jessica Su
@@ -94,9 +93,11 @@ public class Grid {
         }
         int rows = rowsCalc(call.getLatitude());
         int col = colCalc(call.getLongitude());
+        // Create a list if no list exists
         if (this.ra[rows][col] == null) {
             this.ra[rows][col] = new ArrayList<>();
         }
+        // Add the call to the list
         this.ra[rows][col].add(call);
     }
 
@@ -105,14 +106,20 @@ public class Grid {
      * @return the row of the grid
      */
     private int rowsCalc(double lat) {
+        // if the latitude is the max, it is binned to the first row
         if (lat == this.maxLat) {
             return 0;
-        } else if (lat == this.minLat) {
+        }
+        // if the latitude is the min, it is binned to the last row
+        else if (lat == this.minLat) {
             return this.bins - 1;
-        } else {
+        }
+        // otherwise calculate the row
+        else {
             double latInc = (this.maxLat - this.minLat) / this.bins;
             int x = (int) Math.floor((lat - this.minLat) / latInc);
-            return this.bins - x - 1; // latitude increases bottom up so rows must be reversed
+            // latitude increases bottom up so rows must be reversed
+            return this.bins - x - 1;
         }
     }
 
@@ -121,14 +128,18 @@ public class Grid {
      * @return the column of the grid
      */
     private int colCalc(double lon) {
+        // if the longitude is the min, it is binned to the first column
         if (lon == this.minLong) {
             return 0;
-        } else if (lon == this.maxLong) {
+        }
+        // if the longitude is the max, it is binned to the last column
+        else if (lon == this.maxLong) {
             return this.bins - 1;
-        } else {
+        }
+        // otherwise calculate the column
+        else {
             double longInc = (this.maxLong - this.minLong) / this.bins;
-            int x = (int) Math.floor((lon - this.minLong) / longInc);
-            return x;
+            return (int) Math.floor((lon - this.minLong) / longInc);
         }
     }
 

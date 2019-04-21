@@ -6,11 +6,9 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
+
 
 /**
  * @author Jessica Su
@@ -60,45 +58,59 @@ public class DataFormatting {
 
     }
 
-    // add weather input
+    /** Produce a formatted CSV file with Weather and Crime Data.
+     * @param weather the weather data
+     * @param policeCalls the crime data
+     * @param saveFilePath the save directory
+     * @throws IOException when file is not found
+     */
     public static void Formatting(WeatherReport.StationReport[] weather, PoliceCall[] policeCalls, String saveFilePath) throws IOException {
+        // Debugging purposes --> must match printed total in CSV
         System.out.println("Total # of Calls: " + policeCalls.length);
         int total = 0;
-        MaxMin(policeCalls); // Set grid bounds based on all of the police calls
+        // Set grid bounds based on all of the police calls
+        MaxMin(policeCalls);
+        // Name of formatted file
         String fileName = "Formatted_data.csv";
         File file = new File(saveFilePath + fileName);
         BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(file, true));
         String content;
-        Arrays.sort(policeCalls, PoliceCall.DATE_TIME_COMPARATOR); // Sort the array of all policecalls using the Date/Time
+        // Sort the array of all policecalls using the Date/Time
+        Arrays.sort(policeCalls, PoliceCall.DATE_TIME_COMPARATOR);
         int k = 0;
         ArrayList<PoliceCall> dailyCalls;
         String currCallDate;
         String nextCallDate;
-        //while (k < 2584) {
         while (k < policeCalls.length) {
-            dailyCalls = new ArrayList<>(); // Create list of all police calls of a day
+            // Create list of all police calls of a day
+            dailyCalls = new ArrayList<>();
+            // insert the first call to dailyCalls
+            // if the next call has the same date as the last, continue adding to the same list
             do {
                 nextCallDate = null;
                 dailyCalls.add(policeCalls[k]);
                 currCallDate = policeCalls[k].getDatetime().toString().substring(0, 10);
                 k++;
-                //if (k < 2584) {
                 if (k < policeCalls.length) {
                     nextCallDate = policeCalls[k].getDatetime().toString().substring(0, 10);
                 }
             } while (currCallDate.equals(nextCallDate));
-            //System.out.println(k);
-            binning(dailyCalls); // after creating daily list of calls, bin them according to pre-set grid
+            // after creating daily list of calls, bin them according to pre-set grid
+            binning(dailyCalls);
             int i = findWeatherReport(weather, currCallDate);
+            // if weather report is not found for the current data, throw an exception
             if (i == -1) {
-                throw new IllegalArgumentException("Weather Report Not Found");
+                throw new IOException("Weather Report Not Found");
             }
             DailyData day = new DailyData(grid, weather[i]);
-            content = day.toCSV(); // each DailyData object has the information for each row of the CSV
-            bufferedWriter.write(content); // write the data into the CSV file
+            // each DailyData object has the information for each row of the CSV
+            content = day.toCSV();
+            // write the data into the CSV file
+            bufferedWriter.write(content);
             total += day.callsPerDay();
         }
 
+        // Debugging purposes --> Must match previous printed value
         System.out.println("Total in CSV: " + total);
 
         /*
@@ -107,12 +119,12 @@ public class DataFormatting {
         } else {
             content = toCSV(policeCalls);
         }*/
-        //content = toCSV(policeCalls);
-        //bufferedWriter.write(content);
+
         bufferedWriter.flush();
         bufferedWriter.close();
     }
 
+    // Find weather report for a given date.
     private static int findWeatherReport(WeatherReport.StationReport[] weather, String curr) {
         int i = 0;
         while (i < weather.length) {
