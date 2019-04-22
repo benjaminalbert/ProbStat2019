@@ -28,13 +28,14 @@ public class Driver {
             }
             
 //            downloadCrimeData();
-            downloadWeatherData();
+//            downloadWeatherData();
             
 //            Filter filter = null;
 //            filter = makeHighSeverityFilter();
 //            PoliceCall[] policeCalls = readPoliceCalls(filter);
 
-            readStationReports();
+            StationReport[] stationReports = readStationReports();
+            WeatherReport[] weatherReports = generateWeatherReports(stationReports);
 
 //            PoliceCall.write(policeCalls, DATA_SAVE_DIR + FILTERED_CRIME_FILE_NAME);
             
@@ -74,7 +75,12 @@ public class Driver {
     }
     
     public static StationReport[] readStationReports() throws IOException {
-        System.out.println("parsing weather data...");
+        System.out.println("parsing weather station data...");
         return StationReport.readStationReports(DATA_SAVE_DIR + RAW_WEATHER_FILE_NAME);
+    }
+    
+    public static WeatherReport[] generateWeatherReports(StationReport[] stationReports){
+        System.out.println("generating weather reports...");
+        return WeatherReport.generateWeatherReports(stationReports, 6, true, new String[]{"DMH", "BWI"});
     }
 }
