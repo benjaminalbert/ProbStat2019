@@ -11,14 +11,15 @@ public class DailyData {
     private LocalDateTime dateTime;
     // 3D array of sums of severity occurrences [row][column][severity]
     private int[][][] sums;
-    private Double perceivedFahrenheit;
+    private Double fahrenheit;
     private Double hourlyPrecipitationInches;
     private Double relativeHumidity;
+    //private WeatherReport weatherReport;
 
-    public DailyData(Grid grid, WeatherReport.StationReport report) {
+    public DailyData(Grid grid, WeatherReport report) {
         this.sums = grid.calcSeverities();
         this.dateTime = grid.getDateTime();
-        this.perceivedFahrenheit = report.getPerceivedFahrenheit();
+        this.fahrenheit = report.getFahrenheit();
         this.hourlyPrecipitationInches = report.getHourlyPrecipitationInches();
         this.relativeHumidity = report.getRelativeHumidity();
     }
@@ -56,10 +57,10 @@ public class DailyData {
             .append(calls);
 
         // Used for temporary solution to unavailable data at a single station
-        if (this.perceivedFahrenheit == null) {
+        if (this.fahrenheit == null) {
             csvBuilder.append("null");
         } else {
-            csvBuilder.append(this.perceivedFahrenheit.toString());
+            csvBuilder.append(this.fahrenheit.toString());
         }
 
         if (this.hourlyPrecipitationInches == null) {

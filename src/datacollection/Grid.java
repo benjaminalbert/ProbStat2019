@@ -11,7 +11,8 @@ public class Grid {
     private double maxLat;
     private double minLong;
     private double maxLong;
-    private final int bins = 5;
+    private final int rBins = 5;
+    private final int cBins = 5;
     private LocalDateTime dateTime;
 
     private ArrayList<PoliceCall>[][] ra;
@@ -25,8 +26,8 @@ public class Grid {
         maxLat = 0.;
         minLong = 200.;
         maxLong = 0.;
-        ra = new ArrayList[this.bins][this.bins];
-        sums = new int[this.bins][this.bins][4];
+        ra = new ArrayList[this.rBins][this.cBins];
+        sums = new int[this.rBins][this.cBins][4];
     }
 
     /** Set Maximum Latitude. */
@@ -79,9 +80,14 @@ public class Grid {
         return this.minLong;
     }
 
-    /** Return bins. */
-    public int getBins() {
-        return this.bins;
+    /** Return row bins. */
+    public int getrBins() {
+        return this.rBins;
+    }
+
+    /** Return column bins. */
+    public int getcBins() {
+        return this.cBins;
     }
 
     /** Insert police call into the grid.
@@ -112,14 +118,14 @@ public class Grid {
         }
         // if the latitude is the min, it is binned to the last row
         else if (lat == this.minLat) {
-            return this.bins - 1;
+            return this.rBins - 1;
         }
         // otherwise calculate the row
         else {
-            double latInc = (this.maxLat - this.minLat) / this.bins;
+            double latInc = (this.maxLat - this.minLat) / this.rBins;
             int x = (int) Math.floor((lat - this.minLat) / latInc);
             // latitude increases bottom up so rows must be reversed
-            return this.bins - x - 1;
+            return this.rBins - x - 1;
         }
     }
 
@@ -134,11 +140,11 @@ public class Grid {
         }
         // if the longitude is the max, it is binned to the last column
         else if (lon == this.maxLong) {
-            return this.bins - 1;
+            return this.cBins - 1;
         }
         // otherwise calculate the column
         else {
-            double longInc = (this.maxLong - this.minLong) / this.bins;
+            double longInc = (this.maxLong - this.minLong) / this.cBins;
             return (int) Math.floor((lon - this.minLong) / longInc);
         }
     }
@@ -156,8 +162,8 @@ public class Grid {
      * @return the 3D array of sums
      */
     public int[][][] calcSeverities() {
-        for (int i = 0; i < this.bins; i++) {
-            for (int j = 0; j < this.bins; j++) {
+        for (int i = 0; i < this.rBins; i++) {
+            for (int j = 0; j < this.cBins; j++) {
                 if (this.ra[i][j] != null) {
                     for (PoliceCall call : this.ra[i][j]) {
                         int sev = call.getSeverity();

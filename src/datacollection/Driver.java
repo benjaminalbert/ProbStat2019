@@ -26,28 +26,25 @@ public class Driver {
             if (!saveDir.exists()){
                 saveDir.mkdirs();
             }
-            
-<<<<<<< HEAD
+
             //downloadCrimeData();
             //downloadWeatherData();
-=======
+
 //            downloadCrimeData();
 //            downloadWeatherData();
->>>>>>> d8925a679cc02ef6bb7d862a1ce1bdbcdd496737
             
             Filter filter = null;
             filter = makeHighSeverityFilter();
+            //filter = makeAddAllFilter();
             PoliceCall[] policeCalls = readPoliceCalls(filter);
 
-<<<<<<< HEAD
-            StationReport[] weather = readStationReports();
-
-            System.out.println("formatting data...");
-            DataFormatting.Formatting(weather, policeCalls, DATA_SAVE_DIR);
-=======
             StationReport[] stationReports = readStationReports();
             WeatherReport[] weatherReports = generateWeatherReports(stationReports);
->>>>>>> d8925a679cc02ef6bb7d862a1ce1bdbcdd496737
+
+            System.out.println("formatting data...");
+            DataFormatting.Formatting(weatherReports, policeCalls, DATA_SAVE_DIR);
+
+
 
 //            PoliceCall.write(policeCalls, DATA_SAVE_DIR + FILTERED_CRIME_FILE_NAME);
             
@@ -77,6 +74,13 @@ public class Driver {
     public static Filter makeHighSeverityFilter() {
         Filter filter = new Filter();
         filter.getSeverities().addAll(Arrays.asList(new Integer[]{2, 3}));
+        filter.setRequireCoordinate(true);
+        return filter;
+    }
+
+    public static Filter makeAddAllFilter() {
+        Filter filter = new Filter();
+        filter.getSeverities().addAll(Arrays.asList(new Integer[]{0, 1, 2, 3}));
         filter.setRequireCoordinate(true);
         return filter;
     }

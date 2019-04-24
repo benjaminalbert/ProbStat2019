@@ -3,20 +3,12 @@ import java.time.LocalDateTime;
 
 public class QuarterDayData {
 
-    private LocalDateTime beginDatetime;
-    private LocalDateTime endDatetime;
     private int[][][] sums;
-    private Double perceivedFahrenheit;
-    private Double relativeHumidity;
-    private Double hourlyPrecipitationInches;
+    private WeatherReport weatherReport;
 
-    public QuarterDayData(Grid grid, WeatherReport.StationReport report) {
+    public QuarterDayData(Grid grid, WeatherReport report) {
         this.sums = grid.calcSeverities();
-        this.beginDatetime = report.getDatetime();
-        // this.endDatetime = report.getEndDatetime(); --> not a function yet
-        this.perceivedFahrenheit = report.getPerceivedFahrenheit();
-        this.relativeHumidity = report.getRelativeHumidity();
-        this.hourlyPrecipitationInches = report.getHourlyPrecipitationInches();
+        this.weatherReport = report;
     }
 
     public int callsPerQuarterDay() {
@@ -39,14 +31,30 @@ public class QuarterDayData {
         int rows = this.sums.length;
         int calls = callsPerQuarterDay();
         csvBuilder
-            .append(this.beginDatetime.toString())
-            .append(this.endDatetime.toString())
+            .append(this.weatherReport.getStartDateTime().toString())
+            .append(this.weatherReport.getEndDateTime().toString())
             .append(rows)
             .append(col)
-            .append(calls)
-            .append(this.perceivedFahrenheit)
-            .append(this.hourlyPrecipitationInches)
-            .append(this.relativeHumidity);
+            .append(calls);
+
+        if (this.weatherReport.getFahrenheit() == null) {
+            csvBuilder.append("null");
+        } else {
+            csvBuilder.append(this.weatherReport.getFahrenheit());
+        }
+
+        if (this.weatherReport.getHourlyPrecipitationInches() == null) {
+            csvBuilder.append("null");
+        } else {
+            csvBuilder.append(this.weatherReport.getHourlyPrecipitationInches());
+        }
+
+        if (this.weatherReport.getRelativeHumidity() == null) {
+            csvBuilder.append("null");
+        } else {
+            csvBuilder.append(this.weatherReport.getRelativeHumidity());
+        }
+
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < col; j++) {
                 for (int k = 0; k < 4; k++) {

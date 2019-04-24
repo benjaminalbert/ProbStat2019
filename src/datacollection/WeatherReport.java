@@ -284,12 +284,10 @@ public class WeatherReport {
         public void setHourlyPrecipitationInches(Double hourlyPrecipitationInches) {
             this.hourlyPrecipitationInches = hourlyPrecipitationInches;
         }
-<<<<<<< HEAD
 
         public LocalDateTime getDatetime() {
             return datetime;
         }
-=======
->>>>>>> d8925a679cc02ef6bb7d862a1ce1bdbcdd496737
+
     }
 }

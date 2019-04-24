@@ -24,8 +24,8 @@ public class DataFormatting {
     private static double maxLat;
     private static double minLong;
     private static double maxLong;
-
-    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+    private static final int rBins = 5;
+    private static final int cBins = 5;
 
     // Binning Per Day -- New Grid is Created for each day
     private static void binning(ArrayList<PoliceCall> policeCalls) {
@@ -69,68 +69,45 @@ public class DataFormatting {
      * @param saveFilePath the save directory
      * @throws IOException when file is not found
      */
-    public static void Formatting(WeatherReport.StationReport[] weather, PoliceCall[] policeCalls, String saveFilePath) throws IOException {
+    public static void Formatting(WeatherReport[] weather, PoliceCall[] policeCalls, String saveFilePath) throws IOException {
         // Debugging purposes --> must match printed total in CSV
         System.out.println("Total # of Calls: " + policeCalls.length);
         int total = 0;
         // Set grid bounds based on all of the police calls
         MaxMin(policeCalls);
         // Name of formatted file
-        String fileName = "Formatted_data.csv";
-        // String fileName = "Formatted_Quarterly_Data.csv";
+        String fileName = "Formatted_" + rBins + "x" + cBins + "_All_Datatest.csv";
         File file = new File(saveFilePath + fileName);
         BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(file, true));
+        String bounds = boundstoCSV();
+        bufferedWriter.write(bounds);
         String content;
         // Sort the array of all policecalls using the Date/Time
         Arrays.sort(policeCalls, PoliceCall.DATE_TIME_COMPARATOR);
         int k = 0;
-        ArrayList<PoliceCall> dailyCalls;
-        String currCallDate;
-        String nextCallDate;
-        // LocalDateTime beginDatetime;
-        // LocalDateTime endDatetime;
-        // ArrayList<PoliceCall> quarterCalls;
+        LocalDateTime beginDatetime;
+        LocalDateTime endDatetime;
+        ArrayList<PoliceCall> quarterCalls;
+        int i = 0;
         while (k < policeCalls.length) {
-            // Create list of all police calls of a day
-            dailyCalls = new ArrayList<>();
-            // int i = 0;
-            // beginDatetime = weather[i].getBeginDate();
-            // endDatetime = weather[i].getEndDate();
-            // quarterCalls = new ArrayList<>();
-
+            beginDatetime = weather[i].getStartDateTime();
+            endDatetime = weather[i].getEndDateTime();
+            quarterCalls = new ArrayList<>();
             // insert the first call to dailyCalls
             // if the next call has the same date as the last, continue adding to the same list
-            do {
-                nextCallDate = null;
-                dailyCalls.add(policeCalls[k]);
-                // quarterCalls.add(policeCalls[k]);
-                currCallDate = policeCalls[k].getDatetime().toString().substring(0, 10);
-                // currDatetime = policeCalls[k].getDatetime();
+            while (k < policeCalls.length && (policeCalls[k].getDatetime().isEqual(beginDatetime) || policeCalls[k].getDatetime().isAfter(beginDatetime)) && policeCalls[k].getDatetime().isBefore(endDatetime)) {
+                quarterCalls.add(policeCalls[k]);
                 k++;
-                if (k < policeCalls.length) {
-                    nextCallDate = policeCalls[k].getDatetime().toString().substring(0, 10);
-                    // nextDatetime = policeCalls[k].getDatetime();
-                }
-            } while (currCallDate.equals(nextCallDate));
-            // } while (nextDatetime.compareTo(endDatetime) <= 1); // while next date is less than the end datetime
-            // after creating daily list of calls, bin them according to pre-set grid
-            binning(dailyCalls);
-            // binning(quarterCalls);
-            int i = findWeatherReport(weather, currCallDate);
-            // if weather report is not found for the current data, throw an exception
-            if (i == -1) {
-                throw new IOException("Weather Report Not Found");
             }
-            // QuarterDayData quarter = new QuarterDayData(grid, weather[i]);
-            // content = quarter.toCSV();
-            // total += quarter.callsPerQuarterDay;
-            DailyData day = new DailyData(grid, weather[i]);
-            // each DailyData object has the information for each row of the CSV
-            content = day.toCSV();
-            // write the data into the CSV file
-            bufferedWriter.write(content);
-            total += day.callsPerDay();
-            // i++;
+            if (quarterCalls.size() != 0) {
+                binning(quarterCalls);
+                QuarterDayData quarter = new QuarterDayData(grid, weather[i]);
+                content = quarter.toCSV();
+                // add csv descriptive min/max lat/long
+                total += quarter.callsPerQuarterDay();
+                bufferedWriter.write(content);
+            }
+            i++;
         }
 
         // Debugging purposes --> Must match previous printed value
@@ -147,15 +124,18 @@ public class DataFormatting {
         bufferedWriter.close();
     }
 
-    // Find weather report for a given date.
-    private static int findWeatherReport(WeatherReport.StationReport[] weather, String curr) {
-        int i = 0;
-        while (i < weather.length) {
-            if (weather[i].getDatetime().toString().substring(0, 10).equals(curr)) {
-                return i;
-            }
-            i++;
-        }
-        return -1;
+    private static String boundstoCSV() {
+        CSVBuilder csvBuilder = new CSVBuilder();
+        csvBuilder
+            .append("Min Lat: ")
+            .append(minLat)
+            .append("Max Lat: ")
+            .append(maxLat)
+            .append("Min Long: ")
+            .append(minLong)
+            .append("Max Long: ")
+            .append(maxLong);
+        csvBuilder.newline();
+        return csvBuilder.toCSV();
     }
 }
