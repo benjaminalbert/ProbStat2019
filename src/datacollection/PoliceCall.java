@@ -142,9 +142,8 @@ public class PoliceCall {
             }
 
             try {
-
-                if (line.length() > 30) {
-                    String[] tokens = line.split(",");
+                String[] tokens = line.split(",");
+                if (tokens.length > 5) {
                     policeCall.setRecordId(tokens[0]);
 //                    policeCall.setNumber(tokens[1].substring(1));
                     policeCall.setDatetime(LocalDateTime.parse(tokens[2], DATE_TIME_FORMATTER));

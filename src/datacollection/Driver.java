@@ -27,7 +27,7 @@ public class Driver {
                 saveDir.mkdirs();
             }
 
-            //downloadCrimeData();
+//            downloadCrimeData();
             //downloadWeatherData();
 
 //            downloadCrimeData();
