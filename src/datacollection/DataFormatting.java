@@ -139,10 +139,10 @@ public class DataFormatting {
         return csvBuilder.toCSV();
     }
 
-    private static int calcBadSev(PoliceCall[] policeCalls) {
+    public static int calcBadSev(PoliceCall[] policeCalls) {
         int sum = 0;
         for (PoliceCall call : policeCalls) {
-            if (call.getSeverity() == 1) {
+            if (call.getSeverity() == -1) {
                 sum += 1;
             }
         }

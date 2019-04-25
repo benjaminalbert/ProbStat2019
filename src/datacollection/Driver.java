@@ -36,7 +36,7 @@ public class Driver {
             Filter filter = null;
             //filter = makeHighSeverityFilter();
             PoliceCall[] policeCalls = readPoliceCalls(filter);
-
+            
             StationReport[] stationReports = readStationReports();
             WeatherReport[] weatherReports = generateWeatherReports(stationReports);
 
