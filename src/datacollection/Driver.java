@@ -34,8 +34,7 @@ public class Driver {
 //            downloadWeatherData();
             
             Filter filter = null;
-            filter = makeHighSeverityFilter();
-            //filter = makeAddAllFilter();
+            //filter = makeHighSeverityFilter();
             PoliceCall[] policeCalls = readPoliceCalls(filter);
 
             StationReport[] stationReports = readStationReports();

@@ -167,7 +167,9 @@ public class Grid {
                 if (this.ra[i][j] != null) {
                     for (PoliceCall call : this.ra[i][j]) {
                         int sev = call.getSeverity();
-                        this.sums[i][j][sev] += 1;
+                        if (sev != -1) {
+                            this.sums[i][j][sev] += 1;
+                        }
                     }
                 }
             }

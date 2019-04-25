@@ -76,7 +76,7 @@ public class DataFormatting {
         // Set grid bounds based on all of the police calls
         MaxMin(policeCalls);
         // Name of formatted file
-        String fileName = "Formatted_" + rBins + "x" + cBins + "_All_Datatest.csv";
+        String fileName = "Formatted_" + rBins + "x" + cBins + "_All_Data.csv";
         File file = new File(saveFilePath + fileName);
         BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(file, true));
         String bounds = boundstoCSV();
@@ -88,8 +88,8 @@ public class DataFormatting {
         LocalDateTime beginDatetime;
         LocalDateTime endDatetime;
         ArrayList<PoliceCall> quarterCalls;
-        int i = 0;
-        while (k < policeCalls.length) {
+        for (int i = 0; i < weather.length; i++) {
+        //while (k < policeCalls.length) {
             beginDatetime = weather[i].getStartDateTime();
             endDatetime = weather[i].getEndDateTime();
             quarterCalls = new ArrayList<>();
@@ -107,11 +107,11 @@ public class DataFormatting {
                 total += quarter.callsPerQuarterDay();
                 bufferedWriter.write(content);
             }
-            i++;
         }
 
         // Debugging purposes --> Must match previous printed value
         System.out.println("Total in CSV: " + total);
+        System.out.println("Bad Severity: " + calcBadSev(policeCalls));
 
         /*
         if (saveFilePath.endsWith("json")) {
@@ -137,5 +137,15 @@ public class DataFormatting {
             .append(maxLong);
         csvBuilder.newline();
         return csvBuilder.toCSV();
+    }
+
+    private static int calcBadSev(PoliceCall[] policeCalls) {
+        int sum = 0;
+        for (PoliceCall call : policeCalls) {
+            if (call.getSeverity() == 1) {
+                sum += 1;
+            }
+        }
+        return sum;
     }
 }
