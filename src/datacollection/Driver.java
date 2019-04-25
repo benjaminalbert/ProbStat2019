@@ -27,14 +27,12 @@ public class Driver {
                 saveDir.mkdirs();
             }
 
-//            downloadCrimeData();
+            //downloadCrimeData();
             //downloadWeatherData();
-
-//            downloadCrimeData();
-//            downloadWeatherData();
             
             Filter filter = null;
-            //filter = makeHighSeverityFilter();
+            filter = makeHighSeverityFilter();
+            //filter = makeAllFilter();
             PoliceCall[] policeCalls = readPoliceCalls(filter);
             
             StationReport[] stationReports = readStationReports();
@@ -42,8 +40,6 @@ public class Driver {
 
             System.out.println("formatting data...");
             DataFormatting.Formatting(weatherReports, policeCalls, DATA_SAVE_DIR);
-
-
 
 //            PoliceCall.write(policeCalls, DATA_SAVE_DIR + FILTERED_CRIME_FILE_NAME);
             
@@ -73,6 +69,13 @@ public class Driver {
     public static Filter makeHighSeverityFilter() {
         Filter filter = new Filter();
         filter.getSeverities().addAll(Arrays.asList(new Integer[]{2, 3}));
+        filter.setRequireCoordinate(true);
+        return filter;
+    }
+
+    public static Filter makeAllFilter() {
+        Filter filter = new Filter();
+        filter.getSeverities().addAll(Arrays.asList(new Integer[] {0, 1, 2, 3, 4}));
         filter.setRequireCoordinate(true);
         return filter;
     }
