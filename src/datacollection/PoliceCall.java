@@ -49,7 +49,7 @@ public class PoliceCall {
         public Filter() {
             severities = new ArrayList<>();
             descriptionBlacklist = new ArrayList<>();
-            severities.addAll(Arrays.asList(new Integer[]{0, 1, 2, 3}));
+            severities.addAll(Arrays.asList(new Integer[]{0, 1, 2, 3, 4}));
             startDate = LocalDateTime.MIN;
             endDate = LocalDateTime.MAX;
             requireCoordinate = false;
@@ -214,6 +214,8 @@ public class PoliceCall {
                 return 2;
             case "High":
                 return 3;
+            case "Emergency":
+                return 4;
             default:
                 return -1;
         }

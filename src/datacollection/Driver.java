@@ -76,14 +76,7 @@ public class Driver {
         filter.setRequireCoordinate(true);
         return filter;
     }
-
-    public static Filter makeAddAllFilter() {
-        Filter filter = new Filter();
-        filter.getSeverities().addAll(Arrays.asList(new Integer[]{0, 1, 2, 3}));
-        filter.setRequireCoordinate(true);
-        return filter;
-    }
-
+    
     public static PoliceCall[] readPoliceCalls(Filter filter) throws FileNotFoundException, IOException{
         System.out.println("parsing crime data...");
         return PoliceCall.readPoliceCalls(DATA_SAVE_DIR + RAW_CRIME_FILE_NAME, filter);
