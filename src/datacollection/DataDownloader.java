@@ -50,7 +50,6 @@ public class DataDownloader {
                 .addArg("report_type", "1")
                 .addArg("report_type", "2")
                 .toURL();
-        
     }
 
     public static void download(String url, File saveFile) throws IOException {
