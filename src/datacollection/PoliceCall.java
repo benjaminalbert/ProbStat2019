@@ -41,6 +41,7 @@ public class PoliceCall {
     public static class Filter {
 
         private ArrayList<Integer> severities;
+        private ArrayList<String> descriptionWhiteList;
         private ArrayList<String> descriptionBlacklist;
         private LocalDateTime startDate;
         private LocalDateTime endDate;
@@ -48,6 +49,7 @@ public class PoliceCall {
 
         public Filter() {
             severities = new ArrayList<>();
+            descriptionWhiteList = new ArrayList<>();
             descriptionBlacklist = new ArrayList<>();
             severities.addAll(Arrays.asList(new Integer[]{0, 1, 2, 3, 4}));
             startDate = LocalDateTime.MIN;
@@ -59,7 +61,9 @@ public class PoliceCall {
             return severities.contains(policeCall.severity)
                     && startDate.isBefore(policeCall.datetime)
                     && endDate.isAfter(policeCall.datetime)
-                    && ((requireCoordinate && (policeCall.latitude != 0 && policeCall.longitude != 0)) || !requireCoordinate);
+                    && ((requireCoordinate && (policeCall.latitude != 0 && policeCall.longitude != 0)) || !requireCoordinate)
+                    && (descriptionWhiteList.isEmpty() || descriptionWhiteList.contains(policeCall.description))
+                    && (!descriptionBlacklist.contains(policeCall.description));
         }
 
         public ArrayList<Integer> getSeverities() {
@@ -100,6 +104,14 @@ public class PoliceCall {
 
         public void setDescriptionBlacklist(ArrayList<String> descriptionBlacklist) {
             this.descriptionBlacklist = descriptionBlacklist;
+        }
+
+        public ArrayList<String> getDescriptionWhiteList() {
+            return descriptionWhiteList;
+        }
+
+        public void setDescriptionWhiteList(ArrayList<String> descriptionWhiteList) {
+            this.descriptionWhiteList = descriptionWhiteList;
         }
     }
 
