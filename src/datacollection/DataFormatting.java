@@ -22,8 +22,8 @@ public class DataFormatting {
     private static double maxLat;
     private static double minLong;
     private static double maxLong;
-    private static final int rBins = 5;
-    private static final int cBins = 5;
+    private static final int rBins = 15;
+    private static final int cBins = 15;
 
     // Binning Per Day -- New Grid is Created for each day
     private static void binning(ArrayList<PoliceCall> policeCalls) {
@@ -74,7 +74,7 @@ public class DataFormatting {
         // Set grid bounds based on all of the police calls
         MaxMin(policeCalls);
         // Name of formatted file
-        String fileName = "Formatted_" + rBins + "x" + cBins + "_Car_Data.csv";
+        String fileName = "Formatted_" + rBins + "x" + cBins + "_Towed_Data.csv";
         File file = new File(saveFilePath + fileName);
         BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(file, true));
         String bounds = boundstoCSV();

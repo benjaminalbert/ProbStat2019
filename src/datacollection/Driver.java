@@ -33,8 +33,8 @@ public class Driver {
 
             Filter filter = null;
             //filter = makeAutoFilter();
-            filter = makeMentalCaseFilter();
-            //filter = makeTowFilter();
+            //filter = makeMentalCaseFilter();
+            filter = makeTowFilter();
 
             //Filter filter = new Filter();
             //filter.setRequireCoordinate(true);
@@ -42,6 +42,8 @@ public class Driver {
 
             PoliceCall[] policeCalls = readPoliceCalls(filter);
             System.out.println(policeCalls.length);
+            //System.out.println(debugFilter(policeCalls));
+
 
             StationReport[] stationReports = readStationReports();
             WeatherReport[] weatherReports = generateWeatherReports(stationReports);
@@ -96,6 +98,7 @@ public class Driver {
         Filter filter = new Filter();
         filter.setRequireCoordinate(true);
         filter.getDescriptionWhiteList().add("Mental Case");
+        filter.getDescriptionWhiteList().add("MENTAL CASE");
         return filter;
     }
 
@@ -105,6 +108,18 @@ public class Driver {
         filter.getDescriptionWhiteList().add("Private Tow");
         filter.getDescriptionWhiteList().add("TOWED VEHICLE");
         return filter;
+    }
+
+    public static int debugFilter(PoliceCall[] policeCalls) {
+        int sum = 0;
+        for (PoliceCall call : policeCalls) {
+            if (call.getDescription().equalsIgnoreCase("towed vehicle")) {
+                sum += 1;
+            } else if (call.getDescription().equalsIgnoreCase("private tow")) {
+                sum += 1;
+            }
+        }
+        return sum;
     }
 
 
