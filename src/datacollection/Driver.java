@@ -30,31 +30,25 @@ public class Driver {
 
             //downloadCrimeData();
             //downloadWeatherData();
-<<<<<<< HEAD
-            
-            Filter filter = null;
-            filter = makeHighSeverityFilter();
-            //filter = makeAllFilter();
-            PoliceCall[] policeCalls = readPoliceCalls(filter);
-=======
->>>>>>> 4fab990b316a27f05064b5f250ac24b5354fc0a3
-            
-            Filter filter = new Filter();
-            filter.setRequireCoordinate(true);
-//            filter = makeHighSeverityFilter();
 
-<<<<<<< HEAD
-=======
+            Filter filter = null;
+            //filter = makeAutoFilter();
+            filter = makeMentalCaseFilter();
+            //filter = makeTowFilter();
+
+            //Filter filter = new Filter();
+            //filter.setRequireCoordinate(true);
+            //filter = makeHighSeverityFilter();
+
             PoliceCall[] policeCalls = readPoliceCalls(filter);
             System.out.println(policeCalls.length);
 
-//            StationReport[] stationReports = readStationReports();
-//            WeatherReport[] weatherReports = generateWeatherReports(stationReports);
+            StationReport[] stationReports = readStationReports();
+            WeatherReport[] weatherReports = generateWeatherReports(stationReports);
 //
-//            System.out.println("formatting data...");
-//            DataFormatting.Formatting(weatherReports, policeCalls, DATA_SAVE_DIR);
+            System.out.println("formatting data...");
+            DataFormatting.Formatting(weatherReports, policeCalls, DATA_SAVE_DIR);
 
->>>>>>> 4fab990b316a27f05064b5f250ac24b5354fc0a3
 //            PoliceCall.write(policeCalls, DATA_SAVE_DIR + FILTERED_CRIME_FILE_NAME);
         } catch (Exception e) {
             e.printStackTrace();
@@ -88,18 +82,34 @@ public class Driver {
         return filter;
     }
 
-<<<<<<< HEAD
-    public static Filter makeAllFilter() {
+    public static Filter makeAutoFilter() {
         Filter filter = new Filter();
-        filter.getSeverities().addAll(Arrays.asList(new Integer[] {0, 1, 2, 3, 4}));
         filter.setRequireCoordinate(true);
+        filter.getDescriptionWhiteList().add("Traffic Stop");
+        filter.getDescriptionWhiteList().add("AUTO ACCIDENT");
+        filter.getDescriptionWhiteList().add("Traffic Pursuit");
+        filter.getDescriptionWhiteList().add("HIT AND RUN");
         return filter;
     }
+
+    public static Filter makeMentalCaseFilter() {
+        Filter filter = new Filter();
+        filter.setRequireCoordinate(true);
+        filter.getDescriptionWhiteList().add("Mental Case");
+        return filter;
+    }
+
+    public static Filter makeTowFilter() {
+        Filter filter = new Filter();
+        filter.setRequireCoordinate(true);
+        filter.getDescriptionWhiteList().add("Private Tow");
+        filter.getDescriptionWhiteList().add("TOWED VEHICLE");
+        return filter;
+    }
+
+
     
     public static PoliceCall[] readPoliceCalls(Filter filter) throws FileNotFoundException, IOException{
-=======
-    public static PoliceCall[] readPoliceCalls(Filter filter) throws FileNotFoundException, IOException {
->>>>>>> 4fab990b316a27f05064b5f250ac24b5354fc0a3
         System.out.println("parsing crime data...");
         return PoliceCall.readPoliceCalls(DATA_SAVE_DIR + RAW_CRIME_FILE_NAME, filter);
     }

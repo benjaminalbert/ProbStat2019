@@ -6,9 +6,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -76,7 +74,7 @@ public class DataFormatting {
         // Set grid bounds based on all of the police calls
         MaxMin(policeCalls);
         // Name of formatted file
-        String fileName = "Formatted_" + rBins + "x" + cBins + "_All_DataHigh.csv";
+        String fileName = "Formatted_" + rBins + "x" + cBins + "_Car_Data.csv";
         File file = new File(saveFilePath + fileName);
         BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(file, true));
         String bounds = boundstoCSV();
