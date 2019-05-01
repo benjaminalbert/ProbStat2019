@@ -58,7 +58,6 @@ public class DataFormatting {
                 maxLong = policeCall.getLongitude();
             }
         }
-
     }
 
     /** Produce a formatted CSV file with Weather and Crime Data.
@@ -74,7 +73,7 @@ public class DataFormatting {
         // Set grid bounds based on all of the police calls
         MaxMin(policeCalls);
         // Name of formatted file
-        String fileName = "Formatted_" + rBins + "x" + cBins + "_Towed_Data.csv";
+        String fileName = "Formatted_" + rBins + "x" + cBins + "_Mental_Data.csv";
         File file = new File(saveFilePath + fileName);
         BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(file, true));
         String bounds = boundstoCSV();
@@ -123,6 +122,10 @@ public class DataFormatting {
 
     private static String boundstoCSV() {
         CSVBuilder csvBuilder = new CSVBuilder();
+        System.out.println(minLat);
+        System.out.println(maxLat);
+        System.out.println(minLong);
+        System.out.println(maxLong);
         csvBuilder
             .append("Min Lat: ")
             .append(minLat)

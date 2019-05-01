@@ -33,17 +33,19 @@ public class Driver {
 
             Filter filter = null;
             //filter = makeAutoFilter();
-            //filter = makeMentalCaseFilter();
             filter = makeTowFilter();
 
             //Filter filter = new Filter();
             //filter.setRequireCoordinate(true);
+            filter.setMaxLat(39.372036);
+            filter.setMinLong(-76.711268);
+            filter.setMinLat(39.197945);
+            filter.setMaxLong(-76.533786);
             //filter = makeHighSeverityFilter();
 
             PoliceCall[] policeCalls = readPoliceCalls(filter);
             System.out.println(policeCalls.length);
             //System.out.println(debugFilter(policeCalls));
-
 
             StationReport[] stationReports = readStationReports();
             WeatherReport[] weatherReports = generateWeatherReports(stationReports);
@@ -84,24 +86,6 @@ public class Driver {
         return filter;
     }
 
-    public static Filter makeAutoFilter() {
-        Filter filter = new Filter();
-        filter.setRequireCoordinate(true);
-        filter.getDescriptionWhiteList().add("Traffic Stop");
-        filter.getDescriptionWhiteList().add("AUTO ACCIDENT");
-        filter.getDescriptionWhiteList().add("Traffic Pursuit");
-        filter.getDescriptionWhiteList().add("HIT AND RUN");
-        return filter;
-    }
-
-    public static Filter makeMentalCaseFilter() {
-        Filter filter = new Filter();
-        filter.setRequireCoordinate(true);
-        filter.getDescriptionWhiteList().add("Mental Case");
-        filter.getDescriptionWhiteList().add("MENTAL CASE");
-        return filter;
-    }
-
     public static Filter makeTowFilter() {
         Filter filter = new Filter();
         filter.setRequireCoordinate(true);
@@ -109,20 +93,6 @@ public class Driver {
         filter.getDescriptionWhiteList().add("TOWED VEHICLE");
         return filter;
     }
-
-    public static int debugFilter(PoliceCall[] policeCalls) {
-        int sum = 0;
-        for (PoliceCall call : policeCalls) {
-            if (call.getDescription().equalsIgnoreCase("towed vehicle")) {
-                sum += 1;
-            } else if (call.getDescription().equalsIgnoreCase("private tow")) {
-                sum += 1;
-            }
-        }
-        return sum;
-    }
-
-
     
     public static PoliceCall[] readPoliceCalls(Filter filter) throws FileNotFoundException, IOException{
         System.out.println("parsing crime data...");
