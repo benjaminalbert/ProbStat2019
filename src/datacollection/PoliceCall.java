@@ -46,6 +46,10 @@ public class PoliceCall {
         private LocalDateTime startDate;
         private LocalDateTime endDate;
         private boolean requireCoordinate;
+        private double minLat;
+        private double maxLat;
+        private double minLong;
+        private double maxLong;
 
         public Filter() {
             severities = new ArrayList<>();
@@ -55,6 +59,10 @@ public class PoliceCall {
             startDate = LocalDateTime.MIN;
             endDate = LocalDateTime.MAX;
             requireCoordinate = false;
+            minLat = Double.MIN_VALUE;
+            maxLat = Double.MAX_VALUE;
+            minLong = Double.MIN_VALUE;
+            maxLong = Double.MAX_VALUE;
         }
 
         public boolean pass(PoliceCall policeCall) {
@@ -62,6 +70,10 @@ public class PoliceCall {
                     && startDate.isBefore(policeCall.datetime)
                     && endDate.isAfter(policeCall.datetime)
                     && ((requireCoordinate && (policeCall.latitude != 0 && policeCall.longitude != 0)) || !requireCoordinate)
+                    && (policeCall.latitude >= minLat)
+                    && (policeCall.latitude <= maxLat)
+                    && (policeCall.longitude >= minLong)
+                    && (policeCall.longitude <= maxLong)
                     && (descriptionWhiteList.isEmpty() || descriptionWhiteList.contains(policeCall.description))
                     && (!descriptionBlacklist.contains(policeCall.description));
         }
@@ -113,6 +125,39 @@ public class PoliceCall {
         public void setDescriptionWhiteList(ArrayList<String> descriptionWhiteList) {
             this.descriptionWhiteList = descriptionWhiteList;
         }
+
+        public void setMinLat(double lat) {
+            this.minLat = lat;
+        }
+
+        public double getMinLat() {
+            return this.minLat;
+        }
+
+        public void setMaxLat(double lat) {
+            this.maxLat = lat;
+        }
+
+        public double getMaxLat() {
+            return this.maxLat;
+        }
+
+        public void setMinLong(double lon) {
+            this.minLong = lon;
+        }
+
+        public double getMinLong() {
+            return this.minLong;
+        }
+
+        public void setMaxLong(double lon) {
+            this.maxLong = lon;
+        }
+
+        public double getMaxLong() {
+            return this.maxLong;
+        }
+
     }
 
     /**

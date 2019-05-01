@@ -28,21 +28,30 @@ public class Driver {
                 saveDir.mkdirs();
             }
 
-//            downloadCrimeData();
+            //downloadCrimeData();
             //downloadWeatherData();
-            
-            Filter filter = new Filter();
-            filter.setRequireCoordinate(true);
-//            filter = makeHighSeverityFilter();
+
+            Filter filter = null;
+            //filter = makeAutoFilter();
+            filter = makeTowFilter();
+
+            //Filter filter = new Filter();
+            //filter.setRequireCoordinate(true);
+            filter.setMaxLat(39.372036);
+            filter.setMinLong(-76.711268);
+            filter.setMinLat(39.197945);
+            filter.setMaxLong(-76.533786);
+            //filter = makeHighSeverityFilter();
 
             PoliceCall[] policeCalls = readPoliceCalls(filter);
             System.out.println(policeCalls.length);
+            //System.out.println(debugFilter(policeCalls));
 
-//            StationReport[] stationReports = readStationReports();
-//            WeatherReport[] weatherReports = generateWeatherReports(stationReports);
+            StationReport[] stationReports = readStationReports();
+            WeatherReport[] weatherReports = generateWeatherReports(stationReports);
 //
-//            System.out.println("formatting data...");
-//            DataFormatting.Formatting(weatherReports, policeCalls, DATA_SAVE_DIR);
+            System.out.println("formatting data...");
+            DataFormatting.Formatting(weatherReports, policeCalls, DATA_SAVE_DIR);
 
 //            PoliceCall.write(policeCalls, DATA_SAVE_DIR + FILTERED_CRIME_FILE_NAME);
         } catch (Exception e) {
@@ -77,7 +86,15 @@ public class Driver {
         return filter;
     }
 
-    public static PoliceCall[] readPoliceCalls(Filter filter) throws FileNotFoundException, IOException {
+    public static Filter makeTowFilter() {
+        Filter filter = new Filter();
+        filter.setRequireCoordinate(true);
+        filter.getDescriptionWhiteList().add("Private Tow");
+        filter.getDescriptionWhiteList().add("TOWED VEHICLE");
+        return filter;
+    }
+    
+    public static PoliceCall[] readPoliceCalls(Filter filter) throws FileNotFoundException, IOException{
         System.out.println("parsing crime data...");
         return PoliceCall.readPoliceCalls(DATA_SAVE_DIR + RAW_CRIME_FILE_NAME, filter);
     }

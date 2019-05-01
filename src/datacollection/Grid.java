@@ -11,8 +11,8 @@ public class Grid {
     private double maxLat;
     private double minLong;
     private double maxLong;
-    private final int rBins = 5;
-    private final int cBins = 5;
+    private final int rBins = 15;
+    private final int cBins = 15;
     private LocalDateTime dateTime;
 
     private ArrayList<PoliceCall>[][] ra;
@@ -27,7 +27,7 @@ public class Grid {
         minLong = 200.;
         maxLong = 0.;
         ra = new ArrayList[this.rBins][this.cBins];
-        sums = new int[this.rBins][this.cBins][4];
+        sums = new int[this.rBins][this.cBins][5];
     }
 
     /** Set Maximum Latitude. */
