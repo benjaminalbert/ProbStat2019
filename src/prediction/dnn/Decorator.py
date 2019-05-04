@@ -2,6 +2,12 @@
 
 
 def accepts(*types):
+    """
+    Validate inputs by whether the args to a method inherit from the specified types
+
+    :param types: tuple of types that have a one-to-one mapping to arguments for validation
+    :return: function wrapper
+    """
     def wrapper(func):
         from inspect import signature
         if len(types) != len(signature(func).parameters):
@@ -18,6 +24,12 @@ def accepts(*types):
 
 
 def returns(return_type):
+    """
+    Validate return type by whether the return value inherits from the specified type
+
+    :param return_type: the type of which the wrapped function must return or any type that inherits from return_type
+    :return: function wrapper
+    """
     def wrapper(func):
         def returns_func(*args, **kwargs):
             result = func(*args, **kwargs)

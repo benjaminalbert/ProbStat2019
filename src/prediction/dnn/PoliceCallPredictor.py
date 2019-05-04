@@ -28,12 +28,31 @@ class PoliceCallPredictor(object):
               optimizer=tf.keras.optimizers.Adam,
               loss=tf.keras.metrics.sparse_categorical_crossentropy,
               metrics=tf.keras.metrics.sparse_categorical_accuracy,
+              log_dir="./tensorboard",
+              save=True,
               verbosity=1):
+        """
+        Build and train the model
 
+        :param inputs: array of shape abiding by the model input shape
+        :param outputs: array corresponding to the inputs variable and abiding by the model output shape
+        :param epochs: number of epochs for which to train
+        :param learning_rate: learning rate of the optimizer
+        :param decay: optimizer learning rate decay
+        :param val_inputs: validation inputs for testing after each epoch
+        :param val_outputs: validation outputs corresponding to the val_inputs variable used after each epoch
+        :param optimizer: optimizer method for minimizing loss function
+        :param loss: loss function
+        :param metrics: backend Keras methods for model evaluation during training. Can be tuple of methods
+        :param log_dir: dir to save TensorBoard callback data
+        :param save: bool to specify whether to save the model to the log_dir or not
+        :param verbosity: 0 = silent, 1 = progress bar, 2 = one line per epoch (see Keras file training.py: Model.fit)
+        :return: None
+        """
         self.model.compile(
             loss=loss,
             optimizer=optimizer(lr=learning_rate, decay=decay),
-            metrics=[metrics]
+            metrics=([*metrics] if isinstance(metrics, tuple) else [metrics]),
         )
 
         self.model.fit(
@@ -41,11 +60,13 @@ class PoliceCallPredictor(object):
             outputs,
             epochs=epochs,
             validation_data=(val_inputs, val_outputs),
+            callbacks=[tf.keras.callbacks.TensorBoard(log_dir=log_dir, write_graph=save)],
             verbose=verbosity
         )
 
-    def predict(self, inputs):
-        self.model.predict_proba(inputs)
+    # TODO implement prediction method and calculate evaluation metrics (MCC, f1, etc.)
+    # def predict(self, inputs):
+    #     self.model.predict_proba(inputs)
 
     @property
     def model(self):
@@ -53,9 +74,16 @@ class PoliceCallPredictor(object):
 
     @model.setter
     def model(self, model):
+        """
+        Sets the model of this predictor
+
+        :param model: model to set instance variable. If None, ModelFactory.conv_convlstm_dense_2 is used by default
+        :return: None
+        """
         if not model or not isinstance(model, tf.keras.models.Sequential):
+            from ModelFactory import ModelFactory
             input_shape = ((self.rows * self.columns * self.classes + self.extra_vars), self.timesteps)
-            self._model = PoliceCallPredictor.default_model(input_shape, self.classes)
+            self._model = ModelFactory.conv_convlstm_dense_2(input_shape, self.classes)
         else:
             self._model = model
 
