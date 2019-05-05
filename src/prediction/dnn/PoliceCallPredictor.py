@@ -21,13 +21,14 @@ class PoliceCallPredictor(object):
               inputs,
               outputs,
               epochs=10,
-              learning_rate=0.001,
-              decay=1e-6,
+              batch_size=32,
+              learning_rate=1e-2,
+              decay=1e-3,
               val_inputs=None,
               val_outputs=None,
               optimizer=tf.keras.optimizers.Adam,
-              loss=tf.keras.metrics.sparse_categorical_crossentropy,
-              metrics=tf.keras.metrics.sparse_categorical_accuracy,
+              loss=tf.keras.losses.categorical_crossentropy,
+              metrics=tf.keras.metrics.categorical_accuracy,
               log_dir="./tensorboard",
               save=True,
               verbosity=1):
@@ -59,6 +60,7 @@ class PoliceCallPredictor(object):
             inputs,
             outputs,
             epochs=epochs,
+            batch_size=batch_size,
             validation_data=(val_inputs, val_outputs),
             callbacks=[tf.keras.callbacks.TensorBoard(log_dir=log_dir, write_graph=save)],
             verbose=verbosity
@@ -77,13 +79,13 @@ class PoliceCallPredictor(object):
         """
         Sets the model of this predictor
 
-        :param model: model to set instance variable. If None, ModelFactory.conv_convlstm_dense_2 is used by default
+        :param model: model to set instance variable. If None, ModelFactory.convlstm_2_dense_2 is used by default
         :return: None
         """
         if not model or not isinstance(model, tf.keras.models.Sequential):
             from ModelFactory import ModelFactory
             input_shape = ((self.rows * self.columns * self.classes + self.extra_vars), self.timesteps)
-            self._model = ModelFactory.conv_convlstm_dense_2(input_shape, self.classes)
+            self._model = ModelFactory.convlstm_2_dense_2(input_shape, self.classes)
         else:
             self._model = model
 

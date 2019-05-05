@@ -141,18 +141,20 @@ class ModelFactory(object):
     @classifier(input_shape_rank=4)
     def convlstm_2_dense_2(input_shape,
                            classes,
-                           input_filter_multiplier=0.02,
-                           convlstm_1_filter_size=5,
+                           channels_first=True,
+                           input_filter_multiplier=0.10,
+                           convlstm_1_filter_size=3,
                            convlstm_1_leaky_relu_alpha=0.04,
                            convlstm_1_dropout=0.08,
                            convlstm_2_filter_input_multiplier=2.0,
                            convlstm_2_filter_size=3,
                            convlstm_2_leaky_relu_alpha=0.04,
-                           convlstm_2_dropout=0.16,
+                           convlstm_2_dropout=0.01,
                            pool_size=4,
                            pool_method="avg",
-                           dense_1_input_multiplier=0.025,
-                           presoftmax_dense_activation="tanh"):
+                           dense_1_input_multiplier=0.50,
+                           dense_1_activation="tanh",
+                           dense_2_activation="tanh"):
         """
         Generate network of architecture:
             Conv LSTM 2D
@@ -171,7 +173,7 @@ class ModelFactory(object):
                 units = M * N * L * dense_1_input_multiplier
             Dense
                 units = classes
-                activation = softmax
+                activation = tanh
 
 
         :param input_shape: tuple of int with length input_shape_rank=3 specifying the model input shape (MxNxL).
@@ -195,18 +197,20 @@ class ModelFactory(object):
         model = tf.keras.models.Sequential()
         input_filters = round_even(input_shape[1] * input_shape[2] * input_filter_multiplier)
 
-        model.add(ConvLSTM2D(input_filters, (convlstm_1_filter_size, convlstm_1_filter_size), input_shape=input_shape, return_sequences=True))
+        data_format = "channels_first" if channels_first else "channels_last"
+
+        model.add(ConvLSTM2D(input_filters, (convlstm_1_filter_size, convlstm_1_filter_size), input_shape=input_shape, data_format=data_format, return_sequences=True))
         model.add(LeakyReLU(alpha=convlstm_1_leaky_relu_alpha))
         if convlstm_1_dropout > 0:
             model.add(Dropout(convlstm_1_dropout))
-        model.add(ConvLSTM2D(round_even(input_filters * convlstm_2_filter_input_multiplier), (convlstm_2_filter_size, convlstm_2_filter_size)))
+        model.add(ConvLSTM2D(round_even(input_filters * convlstm_2_filter_input_multiplier), (convlstm_2_filter_size, convlstm_2_filter_size), data_format=data_format))
         model.add(LeakyReLU(alpha=convlstm_2_leaky_relu_alpha))
         if convlstm_2_dropout > 0:
             model.add(Dropout(convlstm_2_dropout))
-        if pool_method and type(pool_method) == str:
+        if pool_size and type(pool_size) == int and pool_size > 0 and pool_method and type(pool_method) == str:
             model.add(AveragePooling2D((pool_size, pool_size)) if pool_method == "avg" else MaxPooling2D(pool_size, pool_size))
-        model.add(Flatten())
-        model.add(Dense(round_even(input_shape[1] * input_shape[2] * dense_1_input_multiplier), activation=presoftmax_dense_activation))
-        model.add(Dense(classes, activation="softmax"))
+        model.add(Flatten(data_format=data_format))
+        model.add(Dense(round_even(input_shape[1] * input_shape[2] * dense_1_input_multiplier), activation=dense_1_activation))
+        model.add(Dense(classes, activation=dense_2_activation))
 
         return model
