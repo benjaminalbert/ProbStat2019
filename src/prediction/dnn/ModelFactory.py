@@ -144,7 +144,7 @@ class ModelFactory(object):
                            channels_first=True,
                            units=None,
                            filter_sizes=(5, 3),
-                           dropouts=(0.08, 0.04, 0.02),
+                           dropouts=(0.12, 0.16, 0.20),
                            leaky_relu_alphas=(0.04, 0.04),
                            pool_size=2,
                            pool_method="avg",
@@ -160,7 +160,7 @@ class ModelFactory(object):
         if not units:
             units = []
             units.append(round_even(input_shape[2] * input_shape[3] / 2))
-            units.append(units[0] * 2)
+            units.append(round_even(units[0] * 1.5))
             units.append(round_even((units[1] + output_units) / 2))
         if print_model_architecture:
             print("building network with architecture:")
@@ -177,7 +177,7 @@ class ModelFactory(object):
             if dropouts[1] > 0:
                 print("\t\tdropout: {}".format(dropouts[1]))
             if pool_size > 0:
-                print("\tPOOL (N/A IF SIZE=0)")
+                print("\tPOOL")
                 print("\t\tsize: {}".format(pool_size))
                 print("\t\tmethod: {}".format(pool_method))
             print("\tFLATTEN")

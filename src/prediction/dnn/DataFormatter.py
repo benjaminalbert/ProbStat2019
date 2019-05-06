@@ -121,8 +121,8 @@ def recurrent_regression_to_classification(input, output, minimum_delta=1, minim
         return input[1:], ndarray_to_dataframe(sum_mask / abs(_fill_divisors(sum_mask)))
 
 
-@accepts(DataFrame, int, int, list, bool)
-def reshape_recurrent_input(input, rows, columns, global_columns=None, normalize_inputs=True):
+@accepts(DataFrame, int, int, list, dict, bool)
+def reshape_recurrent_input(input, rows, columns, global_columns=None, global_column_forecast_timesteps=None, normalize_inputs=True):
     """
     Transform recurrent input into shape (timesteps, rows, columns, 1 + extra_vars)
         index 0 specifies each timestep of the input
@@ -144,22 +144,33 @@ def reshape_recurrent_input(input, rows, columns, global_columns=None, normalize
     global_inputs = []
     normalization_divisor = lambda x: 1 if not normalize_inputs else max(x.max(), abs(x.min()))
     for x in input.keys():
-        if not global_columns or x[:x.rfind("_")] not in global_columns:
+        base_column_name = x[:x.rfind("_")]
+        if not global_columns or base_column_name not in global_columns:
             spatial_inputs = [*spatial_inputs, input[x]]
         else:
             global_inputs = [*global_inputs, input[x] / normalization_divisor(input[x])]
+            if global_column_forecast_timesteps and base_column_name in global_column_forecast_timesteps:
+                for t in range(global_column_forecast_timesteps[base_column_name]):
+                    shifted = input[x].shift(-(t + 1))
+                    shifted.rename("{}_t{}".format(base_column_name, "" if not t else "+{}".format(t)), inplace=True)
+                    global_inputs = [*global_inputs, shifted / normalization_divisor(shifted)]
+
+
     spatial_inputs = concat(spatial_inputs, axis=1).values.reshape([spatial_inputs[0].shape[0], timesteps, 1, rows, columns])
     spatial_inputs /= normalization_divisor(spatial_inputs)
     if not global_inputs:
         return spatial_inputs
-    global_inputs = concat(global_inputs, axis=1).values.reshape(spatial_inputs.shape[0], timesteps, len(global_columns))
+    global_inputs = concat(global_inputs, axis=1).values
+    total_global_inputs = int(global_inputs.shape[1] / timesteps)
+    global_inputs = global_inputs.reshape(spatial_inputs.shape[0], timesteps, total_global_inputs)
 
     global_inputs = np.array([np.full([rows, columns], global_inputs[x, y, z])
                               for x in range(global_inputs.shape[0])
                               for y in range(timesteps)
-                              for z in range(len(global_columns))]
-                             ).reshape([global_inputs.shape[0], timesteps, len(global_columns), rows, columns])
-    return np.concatenate((spatial_inputs, global_inputs), axis=2)
+                              for z in range(total_global_inputs)]
+                             ).reshape([global_inputs.shape[0], timesteps, total_global_inputs, rows, columns])
+    merged = np.concatenate((spatial_inputs, global_inputs), axis=2)
+    return merged[:(-max(global_column_forecast_timesteps.values()) if total_global_inputs != len(global_columns) else merged.shape[0])]
 
 
 @accepts(DataFrame, list)
@@ -175,10 +186,13 @@ if __name__ == "__main__":
     import numpy as np
     data = dict(zip(list("abcdefghij"), np.array([x for x in range(60)]).reshape([10, 6])))
     raw = DataFrame(data)
-    print("raw\n", raw, "\n")
+    # print("raw\n", raw, "\n")
     data = make_recurrent(raw, 1, 1)
-    print("recurrent\n", data, "\n")
-    input, output = recurrent_regression_to_classification(*split_recurrent_data(data), enforce_both_minimums=True)
-    reshape_recurrent_input(input, rows=2, columns=4, global_columns=["i", "j"])
+    # print("recurrent\n", data, "\n")
+    input, output = split_recurrent_data(data)
+    # input, output = recurrent_regression_to_classification(*split_recurrent_data(data), enforce_both_minimums=True)
+    global_column_forecast_timesteps = {"i": 2, "j": 2}
+    # global_column_forecast_timesteps = None
+    reshape_recurrent_input(input, rows=2, columns=4, global_columns=["i", "j"], global_column_forecast_timesteps=global_column_forecast_timesteps)
     print("input\n", input, "\n")
     print("output\n", output, "\n")
