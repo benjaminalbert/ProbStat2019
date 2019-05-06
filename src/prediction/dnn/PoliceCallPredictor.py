@@ -22,15 +22,17 @@ class PoliceCallPredictor(object):
               outputs,
               epochs=10,
               batch_size=32,
-              learning_rate=1e-2,
-              decay=1e-3,
+              learning_rate=1e-4,
+              decay=1e-5,
               val_inputs=None,
               val_outputs=None,
               optimizer=tf.keras.optimizers.Adam,
               loss=tf.keras.losses.categorical_crossentropy,
               metrics=tf.keras.metrics.categorical_accuracy,
+              model_name=None,
+              checkpoints_dir="./checkpoints",
+              write_tensorboard_graph=False,
               log_dir="./tensorboard",
-              save=True,
               verbosity=1):
         """
         Build and train the model
@@ -53,8 +55,13 @@ class PoliceCallPredictor(object):
         self.model.compile(
             loss=loss,
             optimizer=optimizer(lr=learning_rate, decay=decay),
-            metrics=([*metrics] if isinstance(metrics, tuple) else [metrics]),
+            metrics=([*metrics] if (isinstance(metrics, tuple) or isinstance(metrics, list)) else [metrics]),
         )
+
+        callbacks = [tf.keras.callbacks.TensorBoard(log_dir=log_dir, write_graph=write_tensorboard_graph)]
+        if model_name:
+            from os.path import join
+            callbacks.append(tf.keras.callbacks.ModelCheckpoint(join(checkpoints_dir, model_name), verbose=1, save_best_only=True))
 
         self.model.fit(
             inputs,
@@ -62,13 +69,9 @@ class PoliceCallPredictor(object):
             epochs=epochs,
             batch_size=batch_size,
             validation_data=(val_inputs, val_outputs),
-            callbacks=[tf.keras.callbacks.TensorBoard(log_dir=log_dir, write_graph=save)],
+            callbacks=callbacks,
             verbose=verbosity
         )
-
-    # TODO implement prediction method and calculate evaluation metrics (MCC, f1, etc.)
-    # def predict(self, inputs):
-    #     self.model.predict_proba(inputs)
 
     @property
     def model(self):

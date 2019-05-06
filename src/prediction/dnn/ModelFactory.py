@@ -140,77 +140,73 @@ class ModelFactory(object):
     @staticmethod
     @classifier(input_shape_rank=4)
     def convlstm_2_dense_2(input_shape,
-                           classes,
+                           output_units,
                            channels_first=True,
-                           input_filter_multiplier=0.10,
-                           convlstm_1_filter_size=3,
-                           convlstm_1_leaky_relu_alpha=0.04,
-                           convlstm_1_dropout=0.08,
-                           convlstm_2_filter_input_multiplier=2.0,
-                           convlstm_2_filter_size=3,
-                           convlstm_2_leaky_relu_alpha=0.04,
-                           convlstm_2_dropout=0.01,
-                           pool_size=4,
+                           units=None,
+                           filter_sizes=(5, 3),
+                           dropouts=(0.08, 0.04, 0.02),
+                           leaky_relu_alphas=(0.04, 0.04),
+                           pool_size=2,
                            pool_method="avg",
-                           dense_1_input_multiplier=0.50,
                            dense_1_activation="tanh",
-                           dense_2_activation="tanh"):
-        """
-        Generate network of architecture:
-            Conv LSTM 2D
-                filters = M * N * L * input_filter_multiplier
-                activation = leaky relu
-                dropout = convlstm_1_dropout
-            Conv LSTM 2D
-                filters = M * N * L * input_filter_multiplier * convlstm_2_filter_input_multiplier
-                activation = leaky relu
-                dropout = convlstm_2_dropout
-            Pool (see param specifications for contingencies)
-                method = pool_method
-            Flatten
-                to one dimensional vector
-            Dense
-                units = M * N * L * dense_1_input_multiplier
-            Dense
-                units = classes
-                activation = tanh
-
-
-        :param input_shape: tuple of int with length input_shape_rank=3 specifying the model input shape (MxNxL).
-        :param classes: number of output units
-        :param input_filter_multiplier: multiplier for generating number of input filters (see model architecture)
-        :param convlstm_1_filter_size: size of the first convlstm layer filters
-        :param convlstm_1_leaky_relu_alpha: slope of the leaky relu activation function for the first convlstm layer
-        :param convlstm_1_dropout: dropout rate for the first convlstm layer. If 0, no dropout
-        :param convlstm_2_filter_input_multiplier: multiplier for generating number of filters for the second convlstm layer (see model architecture)
-        :param convlstm_2_filter_size: size of the second convlstm layer filters
-        :param convlstm_2_leaky_relu_alpha: slope of the leaky relu activation function for the second convlstm layer
-        :param convlstm_2_dropout: dropout rate for the second convlstm layer. If 0, no dropout
-        :param pool_size: size of the pooling square
-        :param pool_method: type of pooling ("avg" or "max"). If None or not a str object, then pooling layer is not added
-        :param dense_1_input_multiplier: multiplier for generating number of input units for the first dense layer (see model architecture)
-        :param presoftmax_dense_activation: activation function for the first dense layer
-        :return: network with two convlstm layers and two dense layers (see network architecture)
-        """
+                           dense_2_activation="tanh",
+                           print_model_architecture=True):
 
         from tensorflow.contrib.keras.api.keras.layers import ConvLSTM2D, LeakyReLU, Dense, AveragePooling2D, MaxPooling2D, Dropout, Flatten
         model = tf.keras.models.Sequential()
-        input_filters = round_even(input_shape[1] * input_shape[2] * input_filter_multiplier)
 
         data_format = "channels_first" if channels_first else "channels_last"
 
-        model.add(ConvLSTM2D(input_filters, (convlstm_1_filter_size, convlstm_1_filter_size), input_shape=input_shape, data_format=data_format, return_sequences=True))
-        model.add(LeakyReLU(alpha=convlstm_1_leaky_relu_alpha))
-        if convlstm_1_dropout > 0:
-            model.add(Dropout(convlstm_1_dropout))
-        model.add(ConvLSTM2D(round_even(input_filters * convlstm_2_filter_input_multiplier), (convlstm_2_filter_size, convlstm_2_filter_size), data_format=data_format))
-        model.add(LeakyReLU(alpha=convlstm_2_leaky_relu_alpha))
-        if convlstm_2_dropout > 0:
-            model.add(Dropout(convlstm_2_dropout))
-        if pool_size and type(pool_size) == int and pool_size > 0 and pool_method and type(pool_method) == str:
+        if not units:
+            units = []
+            units.append(round_even(input_shape[2] * input_shape[3] / 2))
+            units.append(units[0] * 2)
+            units.append(round_even((units[1] + output_units) / 2))
+        if print_model_architecture:
+            print("building network with architecture:")
+            print("\tCONV LSTM 2D")
+            print("\t\tfilters: {}".format(units[0]))
+            print("\t\tleaky relu alpha: {}".format(leaky_relu_alphas[0]))
+            print("\t\tdata format: {}".format(data_format))
+            if dropouts[0] > 0:
+                print("\t\tdropout: {}".format(dropouts[0]))
+            print("\tCONV LSTM 2D")
+            print("\t\tfilters: {}".format(units[1]))
+            print("\t\tleaky relu alpha: {}".format(leaky_relu_alphas[1]))
+            print("\t\tdata format: {}".format(data_format))
+            if dropouts[1] > 0:
+                print("\t\tdropout: {}".format(dropouts[1]))
+            if pool_size > 0:
+                print("\tPOOL (N/A IF SIZE=0)")
+                print("\t\tsize: {}".format(pool_size))
+                print("\t\tmethod: {}".format(pool_method))
+            print("\tFLATTEN")
+            print("\t\tdata format: {}".format(data_format))
+            print("\tDENSE")
+            print("\t\tunits: {}".format(units[2]))
+            print("\t\tactivation: {}".format(dense_1_activation))
+            print("\tDENSE")
+            print("\t\tunits: {}".format(output_units))
+            print("\t\tactivation: {}".format(dense_2_activation))
+
+        if len(units) != 3 or not all([x > 0 for x in units]):
+            raise ValueError("inputs to each layer must be a positive int")
+
+        model.add(ConvLSTM2D(units[0], (filter_sizes[0], filter_sizes[0]), input_shape=input_shape, data_format=data_format, return_sequences=True))
+        model.add(LeakyReLU(alpha=leaky_relu_alphas[0]))
+        if dropouts[0] > 0:
+            model.add(Dropout(dropouts[0]))
+
+        model.add(ConvLSTM2D(units[1], (filter_sizes[1], filter_sizes[1]), data_format=data_format))
+        model.add(LeakyReLU(alpha=leaky_relu_alphas[1]))
+        if dropouts[1] > 0:
+            model.add(Dropout(dropouts[1]))
+
+        if pool_size > 0:
             model.add(AveragePooling2D((pool_size, pool_size)) if pool_method == "avg" else MaxPooling2D(pool_size, pool_size))
+
         model.add(Flatten(data_format=data_format))
-        model.add(Dense(round_even(input_shape[1] * input_shape[2] * dense_1_input_multiplier), activation=dense_1_activation))
-        model.add(Dense(classes, activation=dense_2_activation))
+        model.add(Dense(units[2], activation=dense_1_activation))
+        model.add(Dense(output_units, activation=dense_2_activation))
 
         return model

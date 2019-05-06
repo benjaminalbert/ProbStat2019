@@ -88,27 +88,41 @@ def recurrent_regression_to_classification(input, output, minimum_delta=1, minim
                 the default is therefore 0
 
     """
-    diff = output.diff()[1:]
     import numpy as np
-    mask = lambda x, y: 1 if (not y or np.isinf(x) or np.isnan(x)) else (0 if (not x or -y < x < y) else x/abs(x))
-    delta_mask = diff.applymap(lambda x: mask(x, minimum_delta))
-    delta_percent_mask = (diff.divide(abs(output).shift())[1:]).applymap(lambda x: mask(x, minimum_delta_percentage))
-    # print("delta percent mask\t", delta_percent_mask.isnull().values.any(), "\n")
+
+    def _print_total_nan(name, x):
+        print("total nan in {}:".format(name), np.count_nonzero(np.isnan(x)))
+
+    def _fill_divisors(x):
+        y = np.copy(x)
+        y[y == 0] = 1
+        y[np.isnan(y)] = 1
+        return y
+
+    diff = output.fillna(value=0).diff()[1:].values
+    _print_total_nan("diff", diff)
+    mask = lambda x, y: np.sign((abs(x) >= y) * diff)
+    delta_mask = mask(diff, minimum_delta)
+    _print_total_nan("delta_mask", delta_mask)
+    _print_total_nan("divisor", _fill_divisors(output.values[1:]))
+    delta_percent_mask = mask((diff / _fill_divisors(output.values[1:])), minimum_delta_percentage)
+    _print_total_nan("delta_percent_mask", delta_percent_mask)
+    ndarray_to_dataframe = lambda x: DataFrame(dict(zip(list(output), x.T)))
     # when applying logical operators, we can use a property of the masks to our advantage:
     #   neither mask will have corresponding elements with opposing signs.
     #   the only possible values combinations are: (0,0), (0,1), (0,-1), (1,1), (-1,-1)
     if enforce_both_minimums:
-        from cmath import sqrt
         # logical and operation that preserves sign: sqrt(x)*sqrt(y)
-        return input[1:], (delta_mask.applymap(lambda x: sqrt(x)) * delta_percent_mask.applymap(lambda x: sqrt(x))).applymap(lambda x: x.real)
+        return input[1:], ndarray_to_dataframe(np.sqrt(delta_mask.astype(complex)) * np.sqrt(delta_percent_mask.astype(complex))).applymap(lambda x: x.real)
     else:
         # logical or operation that preserves sign: (x+y)/|x+y|
-        # to avoid division by zero errors, a conditional is used in the lambda
-        return input[1:], (delta_mask + delta_percent_mask).applymap(lambda x: x/abs(x) if x else 0)
+        # to avoid division by zero errors, the sum mask zeros are replaced with ones
+        sum_mask = delta_mask + delta_percent_mask
+        return input[1:], ndarray_to_dataframe(sum_mask / abs(_fill_divisors(sum_mask)))
 
 
-@accepts(DataFrame, int, int, list)
-def reshape_recurrent_input(input, rows, columns, global_columns=None):
+@accepts(DataFrame, int, int, list, bool)
+def reshape_recurrent_input(input, rows, columns, global_columns=None, normalize_inputs=True):
     """
     Transform recurrent input into shape (timesteps, rows, columns, 1 + extra_vars)
         index 0 specifies each timestep of the input
@@ -128,13 +142,17 @@ def reshape_recurrent_input(input, rows, columns, global_columns=None):
     timesteps = len({x[re.search("t-[0-9]+$", x).start():] for x in input.keys()})
     spatial_inputs = []
     global_inputs = []
+    normalization_divisor = lambda x: 1 if not normalize_inputs else max(x.max(), abs(x.min()))
     for x in input.keys():
         if not global_columns or x[:x.rfind("_")] not in global_columns:
             spatial_inputs = [*spatial_inputs, input[x]]
         else:
-            global_inputs = [*global_inputs, input[x]]
+            global_inputs = [*global_inputs, input[x] / normalization_divisor(input[x])]
     spatial_inputs = concat(spatial_inputs, axis=1).values.reshape([spatial_inputs[0].shape[0], timesteps, 1, rows, columns])
-    global_inputs = concat(global_inputs, axis=1).values.reshape(spatial_inputs.shape[0], timesteps, len(global_columns)) if global_inputs else None
+    spatial_inputs /= normalization_divisor(spatial_inputs)
+    if not global_inputs:
+        return spatial_inputs
+    global_inputs = concat(global_inputs, axis=1).values.reshape(spatial_inputs.shape[0], timesteps, len(global_columns))
 
     global_inputs = np.array([np.full([rows, columns], global_inputs[x, y, z])
                               for x in range(global_inputs.shape[0])
@@ -158,7 +176,7 @@ if __name__ == "__main__":
     data = dict(zip(list("abcdefghij"), np.array([x for x in range(60)]).reshape([10, 6])))
     raw = DataFrame(data)
     print("raw\n", raw, "\n")
-    data = make_recurrent(raw, 2, 1)
+    data = make_recurrent(raw, 1, 1)
     print("recurrent\n", data, "\n")
     input, output = recurrent_regression_to_classification(*split_recurrent_data(data), enforce_both_minimums=True)
     reshape_recurrent_input(input, rows=2, columns=4, global_columns=["i", "j"])
