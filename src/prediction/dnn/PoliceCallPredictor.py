@@ -22,11 +22,9 @@ class PoliceCallPredictor(object):
               outputs,
               epochs=10,
               batch_size=32,
-              learning_rate=1e-4,
-              decay=1e-5,
               val_inputs=None,
               val_outputs=None,
-              optimizer=tf.keras.optimizers.Adam,
+              optimizer=tf.keras.optimizers.Adam(lr=1e-4),
               loss=tf.keras.losses.categorical_crossentropy,
               metrics=tf.keras.metrics.categorical_accuracy,
               model_name=None,
@@ -54,14 +52,14 @@ class PoliceCallPredictor(object):
         """
         self.model.compile(
             loss=loss,
-            optimizer=optimizer(lr=learning_rate, decay=decay),
+            optimizer=optimizer,
             metrics=([*metrics] if (isinstance(metrics, tuple) or isinstance(metrics, list)) else [metrics]),
         )
 
         callbacks = [tf.keras.callbacks.TensorBoard(log_dir=log_dir, write_graph=write_tensorboard_graph)]
         if model_name:
             from os.path import join
-            callbacks.append(tf.keras.callbacks.ModelCheckpoint(join(checkpoints_dir, model_name), verbose=1, save_best_only=True))
+            callbacks.append(tf.keras.callbacks.ModelCheckpoint(join(checkpoints_dir, model_name), verbose=1, save_best_only=False))
 
         self.model.fit(
             inputs,

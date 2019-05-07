@@ -144,13 +144,28 @@ class ModelFactory(object):
                            channels_first=True,
                            units=None,
                            filter_sizes=(5, 3),
-                           dropouts=(0.12, 0.16, 0.20),
+                           dropouts=(0.20, 0.24, 0.32),
                            leaky_relu_alphas=(0.04, 0.04),
                            pool_size=2,
                            pool_method="avg",
                            dense_1_activation="tanh",
                            dense_2_activation="tanh",
                            print_model_architecture=True):
+        """
+        :param input_shape: 5 dimensional (batch, timesteps, channels, rows, columns)
+        :param output_units: total number of output neurons
+        :param channels_first: if False, input_shape is: (batch, timesteps, rows, columns, channels)
+        :param units: list of int specifying the number of filters and units per layer (excluding final layer)
+        :param filter_sizes: list of int specifying the dimensions of the convolutional filters of ConvLSTM2D
+        :param dropouts: list of float specifying the dropout rates per layer (excluding final layer)
+        :param leaky_relu_alphas: list of float specifying leak relu slope in the negative domain for the ConvLSTM2D activation functions
+        :param pool_size: int specifying the size of the square used for pooling between the second ConvLSTM and first Dense layers
+        :param pool_method: if "avg", 2D average pooling is used, otherwise max pooling is used
+        :param dense_1_activation: activation function for the first dense layer
+        :param dense_2_activation: activation function for the output layer
+        :param print_model_architecture: if True, the model architecture is printed before trying to build it
+        :return:
+        """
 
         from tensorflow.contrib.keras.api.keras.layers import ConvLSTM2D, LeakyReLU, Dense, AveragePooling2D, MaxPooling2D, Dropout, Flatten
         model = tf.keras.models.Sequential()

@@ -70,6 +70,9 @@ def split_recurrent_data(dataframe, input_columns=None, output_columns=None):
 @accepts(DataFrame, DataFrame, float, float, bool)
 def recurrent_regression_to_classification(input, output, minimum_delta=1, minimum_delta_percentage=0.10, enforce_both_minimums=True):
     """
+    NOTE: Classification using non-diffed inputs (i.e. raw continuous data) does not perform well.
+        Either diff the inputs for classification or do not use this method and simply do regression instead.
+
     Discretize recurrent regression data by converting outputs to represent increase (1), decrease (-1), or no change (0)
 
     :param input: unmutated regression input dataframe
@@ -121,20 +124,16 @@ def recurrent_regression_to_classification(input, output, minimum_delta=1, minim
         return input[1:], ndarray_to_dataframe(sum_mask / abs(_fill_divisors(sum_mask)))
 
 
-@accepts(DataFrame, int, int, list, dict, bool)
-def reshape_recurrent_input(input, rows, columns, global_columns=None, global_column_forecast_timesteps=None, normalize_inputs=True):
+@accepts(DataFrame, int, int, list, dict, float)
+def reshape_recurrent_input(input, rows, columns, global_columns=None, global_column_forecast_timesteps=None, abs_max=0):
     """
-    Transform recurrent input into shape (timesteps, rows, columns, 1 + extra_vars)
-        index 0 specifies each timestep of the input
-        index 1 specifies the geometric row per input for convolution
-        index 2 specifies the geometric column per input for convolution
-        index 3 represents the channels per input image where each extra var fills an entire channel
-
-    :param input:
-    :param rows:
-    :param columns:
-    :param global_columns:
-    :return:
+    :param input: dataframe to copy and reshape (unmutated)
+    :param rows: number of rows of the map grid
+    :param columns: number of columns of the map grid
+    :param global_columns: base column names of column data that should be transformed into 2D by copying a single value into a (row, column) array
+    :param global_column_forecast_timesteps: how many timesteps forward to forecast global variables. (e.g. weather forecasting temperature/relative humidity/precipitation)
+    :param abs_max: normalization divisor. if 0, maximum is calculated and return for use with testing data to keep a constant normalization factor and avoid look-ahead bias
+    :return: reshaped input for recurrent deep learning tasks, normalization divisor
     """
     import re
     import numpy as np
@@ -142,24 +141,30 @@ def reshape_recurrent_input(input, rows, columns, global_columns=None, global_co
     timesteps = len({x[re.search("t-[0-9]+$", x).start():] for x in input.keys()})
     spatial_inputs = []
     global_inputs = []
-    normalization_divisor = lambda x: 1 if not normalize_inputs else max(x.max(), abs(x.min()))
-    for x in input.keys():
-        base_column_name = x[:x.rfind("_")]
+    total_nan = sum(input.isna().sum())
+    if total_nan > 0:
+        print("replacing {} input nan values with 0".format(total_nan))
+    input.fillna(value=0, inplace=True)
+    if not abs_max:
+        abs_max = abs(input.values).max()
+        print("normalizing with abs_max:", abs_max)
+    for x, key in enumerate(input.keys()):
+        base_column_name = key[:key.rfind("_")]
         if not global_columns or base_column_name not in global_columns:
-            spatial_inputs = [*spatial_inputs, input[x]]
+            spatial_inputs = [*spatial_inputs, input[key]]
         else:
-            global_inputs = [*global_inputs, input[x] / normalization_divisor(input[x])]
+            global_inputs = [*global_inputs, input[key] / abs_max]
             if global_column_forecast_timesteps and base_column_name in global_column_forecast_timesteps:
                 for t in range(global_column_forecast_timesteps[base_column_name]):
-                    shifted = input[x].shift(-(t + 1))
+                    shifted = input[key].shift(-(t + 1))
                     shifted.rename("{}_t{}".format(base_column_name, "" if not t else "+{}".format(t)), inplace=True)
-                    global_inputs = [*global_inputs, shifted / normalization_divisor(shifted)]
+                    global_inputs = [*global_inputs, shifted / abs_max]
 
 
     spatial_inputs = concat(spatial_inputs, axis=1).values.reshape([spatial_inputs[0].shape[0], timesteps, 1, rows, columns])
-    spatial_inputs /= normalization_divisor(spatial_inputs)
+    spatial_inputs /= abs_max
     if not global_inputs:
-        return spatial_inputs
+        return spatial_inputs, abs_max
     global_inputs = concat(global_inputs, axis=1).values
     total_global_inputs = int(global_inputs.shape[1] / timesteps)
     global_inputs = global_inputs.reshape(spatial_inputs.shape[0], timesteps, total_global_inputs)
@@ -170,11 +175,16 @@ def reshape_recurrent_input(input, rows, columns, global_columns=None, global_co
                               for z in range(total_global_inputs)]
                              ).reshape([global_inputs.shape[0], timesteps, total_global_inputs, rows, columns])
     merged = np.concatenate((spatial_inputs, global_inputs), axis=2)
-    return merged[:(-max(global_column_forecast_timesteps.values()) if total_global_inputs != len(global_columns) else merged.shape[0])]
+    return merged[:(-max(global_column_forecast_timesteps.values()) if total_global_inputs != len(global_columns) else merged.shape[0])], abs_max
 
 
 @accepts(DataFrame, list)
 def remove_global_output_columns(dataframe, global_columns):
+    """
+    :param dataframe: data to be copied for manipulation (not mutated)
+    :param global_columns: list of base column names to remove (does not require timestep chars)
+    :return: copy of dataframe with all global_columns removed
+    """
     copy = dataframe.copy()
     for x in dataframe.keys():
         if x[:x.rfind("_")] in global_columns:
