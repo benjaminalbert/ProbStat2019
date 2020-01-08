@@ -6,9 +6,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -24,8 +22,8 @@ public class DataFormatting {
     private static double maxLat;
     private static double minLong;
     private static double maxLong;
-    private static final int rBins = 5;
-    private static final int cBins = 5;
+    private static final int rBins = 15;
+    private static final int cBins = 15;
 
     // Binning Per Day -- New Grid is Created for each day
     private static void binning(ArrayList<PoliceCall> policeCalls) {
@@ -60,7 +58,6 @@ public class DataFormatting {
                 maxLong = policeCall.getLongitude();
             }
         }
-
     }
 
     /** Produce a formatted CSV file with Weather and Crime Data.
@@ -125,6 +122,10 @@ public class DataFormatting {
 
     private static String boundstoCSV() {
         CSVBuilder csvBuilder = new CSVBuilder();
+        System.out.println(minLat);
+        System.out.println(maxLat);
+        System.out.println(minLong);
+        System.out.println(maxLong);
         csvBuilder
             .append("Min Lat: ")
             .append(minLat)
