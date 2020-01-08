@@ -27,7 +27,7 @@ public class Grid {
         minLong = 200.;
         maxLong = 0.;
         ra = new ArrayList[this.rBins][this.cBins];
-        sums = new int[this.rBins][this.cBins][4];
+        sums = new int[this.rBins][this.cBins][5];
     }
 
     /** Set Maximum Latitude. */

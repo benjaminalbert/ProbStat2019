@@ -76,7 +76,7 @@ public class DataFormatting {
         // Set grid bounds based on all of the police calls
         MaxMin(policeCalls);
         // Name of formatted file
-        String fileName = "Formatted_" + rBins + "x" + cBins + "_All_Data.csv";
+        String fileName = "Formatted_" + rBins + "x" + cBins + "_All_DataHigh.csv";
         File file = new File(saveFilePath + fileName);
         BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(file, true));
         String bounds = boundstoCSV();
@@ -111,8 +111,7 @@ public class DataFormatting {
 
         // Debugging purposes --> Must match previous printed value
         System.out.println("Total in CSV: " + total);
-        System.out.println("Bad Severity: " + calcBadSev(policeCalls));
-
+        debugPrints(policeCalls);
         /*
         if (saveFilePath.endsWith("json")) {
             content = new Gson().toJson(policeCalls);
@@ -139,13 +138,24 @@ public class DataFormatting {
         return csvBuilder.toCSV();
     }
 
-    public static int calcBadSev(PoliceCall[] policeCalls) {
+    public static void debugPrints(PoliceCall[] policeCalls) {
         int sum = 0;
+        boolean latZero = false;
+        boolean longZero = false;
         for (PoliceCall call : policeCalls) {
             if (call.getSeverity() == -1) {
                 sum += 1;
             }
+            if (call.getLatitude() == 0.) {
+                latZero = true;
+            }
+            if (call.getLongitude() == 0.) {
+                longZero = true;
+            }
         }
-        return sum;
+        System.out.println("Bad Sev: " + sum);
+        System.out.println("0 Latitude: " + latZero);
+        System.out.println("0 Longitude: " + longZero);
+
     }
 }

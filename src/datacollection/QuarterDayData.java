@@ -17,7 +17,7 @@ public class QuarterDayData {
         int sum = 0;
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < col; j++) {
-                for (int k = 0; k < 4; k++) {
+                for (int k = 0; k < 5; k++) {
                     sum += this.sums[i][j][k];
                 }
             }
@@ -57,7 +57,7 @@ public class QuarterDayData {
 
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < col; j++) {
-                for (int k = 0; k < 4; k++) {
+                for (int k = 0; k < 5; k++) {
                     csvBuilder.append(this.sums[i][j][k]);
                 }
             }
